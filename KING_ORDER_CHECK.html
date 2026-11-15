@@ -166,6 +166,15 @@ html:has(#ov.on),body:has(#ov.on){overflow:hidden}
 .kv.kad span:first-child{color:#b45309}
 .kcp{display:inline-block;margin-top:5px;margin-right:6px;padding:3px 10px;border-radius:999px;background:#e8f0fe;color:#0b4fa8;font-size:12.5px;font-weight:900;text-decoration:none}
 </style>
+<style id="jamacss">
+.jbx{margin-top:8px;border:2px solid #f5c58a;background:#fff7e6;border-radius:10px;padding:8px}
+.jbt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:900;font-size:14px;color:#7a3e00}.jbt b{font-size:20px;color:#b42410}
+.jbr{display:flex;gap:6px;margin-top:8px}.jbr input{flex:1;min-width:0;width:auto;padding:10px;font-size:16px;font-weight:800;border:2px solid #f5c58a;border-radius:9px;text-align:center;background:#fff}
+.jbr button{flex:none;padding:10px 12px;border:0;border-radius:9px;font-size:14px;font-weight:900;background:#16a34a;color:#fff}
+.jbl{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;color:#333;margin-top:5px}
+.jbl button{border:0;background:#fde4e1;color:#b42410;border-radius:7px;padding:3px 9px;font-weight:900}
+.jtop{margin-top:10px;background:#fff7e6;border:2px solid #f5c58a;border-radius:10px;padding:9px 10px;font-weight:900;font-size:14px;color:#7a3e00}.jtop b{color:#b42410;font-size:18px}
+</style>
 </head>
 <body>
 <header>
@@ -186,7 +195,7 @@ html:has(#ov.on),body:has(#ov.on){overflow:hidden}
 <div id="ov"><div class="sh" id="shb"></div></div>
 
 <script>
-var DEFAULT_URL="https://script.google.com/macros/s/AKfycbzEeBH83lSB2w4TUS1geSCbuBSyoUl91Kin98TSyN9hbL71BZmhO-wiBHMpVAo1PcoUsg/exec";            // यहाँ Google Apps Script (Web App) का /exec लिंक डाल सकते हैं (या ⚙ से डालें)
+var DEFAULT_URL="https://script.google.com/macros/s/AKfycby739dRs7oX_SYidOaq4mUbD7VZz660VSrk07gECF7Zd2lcvAZlDVblicIKbDadBch4/exec";            // यहाँ Google Apps Script (Web App) का /exec लिंक डाल सकते हैं (या ⚙ से डालें)
 var SRC="kms_orders",LK="kms_orders_page",UK="kms_order_url";
 var DEFAULT_PIN="1234",BUK="kms_boys_url",BPK="kms_boys_pin",BCK="kms_boys_cache",boys=[];  /* Delivery_Boys_Code.gs का /exec लिंक (या ⚙ से डालें) */
 try{boys=JSON.parse(localStorage.getItem(BCK)||"[]")||[]}catch(e){boys=[]}
@@ -211,11 +220,10 @@ function boyTxt(m){var d=tel10(m),b=null;try{b=boyBy(d)}catch(e){}return (b&&b.n
 function tel10(m){var d=String(m||"").replace(/\D/g,"");return d.length>10?d.slice(-10):d}
 
 function load(){orders=ld(LK);orders.forEach(function(o){o.status=ns(o.status)});var ids={};orders.forEach(function(o){ids[o.id]=1});
-var add=false;ld(SRC).forEach(function(o){if(o&&o.id&&!ids[o.id]){orders.push(o);ids[o.id]=1;add=true}});
-if(add)sv(LK,orders)}
+/* sirf online: is phone ke purane/local ordres yahan nahi judte */}
 function save(){sv(LK,orders)}
 
-function dropGone(j){try{if(!j||j.ok!==true||!Array.isArray(j.orders)||!j.orders.length)return;var s={};j.orders.forEach(function(r){if(r&&r.id)s[String(r.id)]=1});var n=orders.length;orders=orders.filter(function(o){return s[String(o.id)]||o._dirty});if(orders.length!==n)save()}catch(e){}} function mergeRemote(arr){var by={};orders.forEach(function(o){by[o.id]=o});var ch=false;
+function dropGone(j){try{if(!j||j.ok!==true||!Array.isArray(j.orders))return;var s={};j.orders.forEach(function(r){if(r&&r.id)s[String(r.id)]=1});var n=orders.length;orders=orders.filter(function(o){return s[String(o.id)]||o._dirty});if(orders.length!==n)save()}catch(e){}} function mergeRemote(arr){var by={};orders.forEach(function(o){by[o.id]=o});var ch=false;
 arr.forEach(function(r){if(!r||!r.id)return;r.id=String(r.id);r.mobile=tel10(r.mobile);r.status=ns(r.status);var l=by[r.id];
 if(!l){orders.push(r);by[r.id]=r;ch=true;return}
 if(l._dirty){if(r.status===l.status||Date.now()-Number(l._dirty)>20000){delete l._dirty;ch=true;if(r.status===l.status){if(mh(l,r))ch=true;return}}else{if(mh(l,r))ch=true;return}}
@@ -520,9 +528,9 @@ box.innerHTML=h}
 function redrawKeep(){var a=document.activeElement;if(a&&a.closest&&a.closest("#shb")&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;if(document.getElementById("bfn"))drawBoys(true)}
 function drawBoys(keep){var f=keep&&document.getElementById("bfn")?{n:document.getElementById("bfn").value,m:document.getElementById("bfm").value,p:[].map.call(document.querySelectorAll(".bpn"),function(x){return x.value}),a:document.getElementById("bfa").value}:null;
 var h='<h3>🛵 Delivery Boys ('+boys.length+')</h3><p>यहाँ जिनके नंबर जुड़ेंगे सिर्फ़ वही KING_DELIVERY में लॉगिन कर पाएँगे, और सिर्फ़ अपने पिन कोड / गाँव के ऑर्डर व Complaint देखेंगे।</p>';
-boys.forEach(function(b){var pend=orders.filter(function(o){return ns(o.status)==="OutForDelivery"&&tel10(o.dboy)===tel10(b.mobile)}).length;
+h+=jTop();boys.forEach(function(b){var pend=orders.filter(function(o){return ns(o.status)==="OutForDelivery"&&tel10(o.dboy)===tel10(b.mobile)}).length;
 h+='<div class="bx"><div class="bxh">'+esc(b.name||"डिलीवरी वाला")+' • '+esc(b.mobile)+(b.active===false?' <span class="bof">बंद</span>':'')+'</div><div class="bxa">📮 '+esc(b.areas.join(", ")||"— एरिया नहीं —")+'</div><div class="bxa">🛵 अभी चल रही डिलीवरी: '+pend+'</div><div class="bxa">📦 इस एरिया के चालू ऑर्डर: '+cntA(b,false)+' • 🛠 Complaint: '+cntA(b,true)+'</div>'
-+'<div class="bxb"><button data-ba="edit" data-bm="'+esc(b.mobile)+'">✏ बदलें</button><button data-ba="tog" data-bm="'+esc(b.mobile)+'">'+(b.active===false?"✅ चालू करें":"⏸ बंद करें")+'</button><button class="rd" data-ba="del" data-bm="'+esc(b.mobile)+'">🗑 हटाएँ</button></div></div>'});
++jBox(b)+'<div class="bxb"><button data-ba="edit" data-bm="'+esc(b.mobile)+'">✏ बदलें</button><button data-ba="tog" data-bm="'+esc(b.mobile)+'">'+(b.active===false?"✅ चालू करें":"⏸ बंद करें")+'</button><button class="rd" data-ba="del" data-bm="'+esc(b.mobile)+'">🗑 हटाएँ</button></div></div>'});
 if(!boys.length)h+='<div class="bun">अभी कोई डिलीवरी वाला नहीं जुड़ा है।</div>';
 var un=orders.filter(function(o){var s=ns(o.status);return(s==="Confirmed"||s==="Shipped"||s==="OutForDelivery")&&o.delivery==="घर"&&!boysForOrder(o).length&&!(s==="OutForDelivery"&&tel10(o.dboy).length===10)});
 if(boys.length&&un.length)h+='<div class="bun">⚠ इन चालू ऑर्डर का पिन कोड / गाँव किसी के एरिया में नहीं मिला: '+un.slice(0,6).map(function(o){return esc(o.no||o.id)+" ("+esc([o.address,o.city,o.pin].filter(Boolean).join(", ")||"पता नहीं")+")"}).join(" • ")+(un.length>6?" …":"")+'</div>';
@@ -587,6 +595,9 @@ mtEl.addEventListener("click",function(e){if(!e.target.closest("button"))return;
 <script id="custall">
 /* ===== 👥 All Customers + ब्लॉक नियम ===== */
 var custMode=false,custSel="";
+var KM_CUSTDB={"7307490275":{"due":0.0,"credit":22.03},"8303907304":{"due":0.0,"credit":11.4},"0000000000":{"due":699.0,"credit":896.79},"8423431543":{"due":80.5,"credit":0.0},"9670478962":{"due":750.0,"credit":0.0},"9236010824":{"due":50.0,"credit":5.4},"8127872374":{"due":250.0,"credit":33.53},"8429737425":{"due":114.0,"credit":13.52},"6284493018":{"due":0.0,"credit":122.55},"7318114220":{"due":545.0,"credit":1.1},"8112625651":{"due":0.0,"credit":177.7},"8127904308":{"due":0.0,"credit":9.23},"7985391355":{"due":0.0,"credit":37.68},"9792813351":{"due":600.5,"credit":39.95},"9628464341":{"due":0.0,"credit":0.0},"8756792912":{"due":0.0,"credit":45.2},"7706845143":{"due":0.0,"credit":12.2},"7068125092":{"due":0.0,"credit":27.2},"9335704842":{"due":0.0,"credit":6.75},"6390528272":{"due":0.0,"credit":4.35},"7081310909":{"due":0.0,"credit":31.52},"8360306196":{"due":0.0,"credit":42.1},"7340940441":{"due":110.0,"credit":0.0},"7394978755":{"due":80.0,"credit":26.78},"7434859693":{"due":0.0,"credit":4.03},"9026770520":{"due":0.0,"credit":48.95},"9260940447":{"due":0.0,"credit":45.5},"9170827774":{"due":0.0,"credit":33.7},"8097129587":{"due":0.0,"credit":86.77},"8853154781":{"due":0.0,"credit":53.92},"8115274115":{"due":0.0,"credit":4.22},"6387254500":{"due":250.0,"credit":0.0},"8858398680":{"due":100.0,"credit":364.2},"6392910832":{"due":227.5,"credit":0.0},"7518707580":{"due":0.0,"credit":6.03},"9198198921":{"due":0.0,"credit":77.5},"9628722421":{"due":0.0,"credit":2.88},"8174072588":{"due":0.0,"credit":2.03},"9519437588":{"due":0.0,"credit":6.03},"9198820799":{"due":0.0,"credit":42.26},"7052863068":{"due":0.0,"credit":53.16},"8858845688":{"due":70.0,"credit":0.0},"9336841246":{"due":300.0,"credit":0.0},"9559157543":{"due":0.0,"credit":6.03},"9034841298":{"due":0.0,"credit":4.95},"6306672768":{"due":0.0,"credit":14.1},"7054183635":{"due":0.0,"credit":29.1},"1233230132":{"due":0.0,"credit":38.24},"7619037209":{"due":0.0,"credit":4.03},"6389632055":{"due":0.0,"credit":98.12},"9506608313":{"due":0.0,"credit":36.13},"9198293092":{"due":650.0,"credit":0.0},"7388289337":{"due":1100.5,"credit":0.0},"9648594692":{"due":0.0,"credit":25.1},"8580453419":{"due":0.0,"credit":23.8},"9235134350":{"due":0.0,"credit":6.25},"8115198597":{"due":0.0,"credit":2.7},"9326629277":{"due":0.0,"credit":30.0},"8756837917":{"due":0.0,"credit":6.03},"7607714415":{"due":150.0,"credit":0.0},"9651514096":{"due":3049.0,"credit":0.2},"9005739892":{"due":0.0,"credit":5.1},"9217425947":{"due":45.0,"credit":14.0},"6386735727":{"due":0.0,"credit":6.7},"9219055433":{"due":778.0,"credit":0.0},"7380734307":{"due":0.0,"credit":3.0},"8174070013":{"due":0.0,"credit":3.0},"8423069880":{"due":0.0,"credit":29.5},"9724250212":{"due":0.0,"credit":3.0},"9670640651":{"due":19.0,"credit":66.0},"9558222519":{"due":89.0,"credit":307.4},"8726979950":{"due":0.0,"credit":2.7},"9621503709":{"due":0.0,"credit":14.7},"6393137129":{"due":251.5,"credit":76.0},"8756844050":{"due":50.0,"credit":6.7},"9721712237":{"due":0.0,"credit":30.0},"7753840415":{"due":0.0,"credit":0.0},"9696826576":{"due":0.0,"credit":5.0},"9125747230":{"due":0.0,"credit":40.0},"9120554350":{"due":0.0,"credit":2.7},"8423821055":{"due":0.0,"credit":3.1},"7081375270":{"due":975.0,"credit":0.0},"8081543190":{"due":0.0,"credit":7.5},"8601004480":{"due":500.0,"credit":54.0},"8577966013":{"due":0.0,"credit":22.0},"7800222519":{"due":0.0,"credit":4.4},"8115871204":{"due":0.0,"credit":20.0},"7054662667":{"due":0.0,"credit":1.25},"8423714724":{"due":0.0,"credit":69.8},"9956320709":{"due":0.0,"credit":11.7},"1234567891":{"due":1750.0,"credit":183.5},"8176991142":{"due":0.0,"credit":158.0},"7388315046":{"due":0.0,"credit":82.3},"8429155474":{"due":395.0,"credit":100.0},"9170683840":{"due":500.0,"credit":0.0},"8830700507":{"due":0.0,"credit":50.5},"7985948521":{"due":0.0,"credit":67.8},"9125648454":{"due":50.0,"credit":30.0},"8602282095":{"due":0.0,"credit":32.0},"9695784457":{"due":850.0,"credit":64.0},"9170204810":{"due":0.0,"credit":28.0},"7800460378":{"due":0.0,"credit":16.0},"7717651411":{"due":0.0,"credit":3.6},"6386612962":{"due":0.0,"credit":50.0},"8081968155":{"due":0.0,"credit":6.0},"7081544680":{"due":350.0,"credit":0.0},"7894561234":{"due":0.0,"credit":49.0},"7800706039":{"due":0.0,"credit":40.0},"8874446105":{"due":0.0,"credit":23.3},"9795506304":{"due":0.0,"credit":7.5},"7068893616":{"due":0.0,"credit":70.0},"7268894661":{"due":1000.0,"credit":0.0},"8115109675":{"due":0.0,"credit":6.6},"9621926308":{"due":387.5,"credit":0.0},"9621464070":{"due":120.0,"credit":0.0},"9794775953":{"due":0.0,"credit":6.7},"7897969809":{"due":0.0,"credit":48.0},"9151781774":{"due":0.0,"credit":42.0},"9250718451":{"due":0.0,"credit":26.0},"9919817146":{"due":0.0,"credit":54.1},"9892347830":{"due":0.0,"credit":23.32},"9793728345":{"due":0.0,"credit":16.0},"6206572560":{"due":237.5,"credit":0.0},"8930605441":{"due":0.0,"credit":28.0},"9889427597":{"due":0.0,"credit":3.6},"7388296527":{"due":0.0,"credit":11.58},"9936172065":{"due":300.0,"credit":0.0},"8881119406":{"due":0.0,"credit":30.0},"9648503709":{"due":0.0,"credit":6.72},"9956320389":{"due":0.0,"credit":50.0},"9198982915":{"due":0.0,"credit":54.0},"7690018895":{"due":0.0,"credit":44.0},"8127442672":{"due":0.0,"credit":60.0},"7054935881":{"due":0.0,"credit":54.0},"9005290066":{"due":0.0,"credit":28.0},"9628839522":{"due":0.0,"credit":16.0},"9044521795":{"due":850.0,"credit":44.0},"8948147333":{"due":0.0,"credit":0.0},"9034067962":{"due":0.0,"credit":18.0},"7880649952":{"due":500.0,"credit":0.0},"9621345579":{"due":0.0,"credit":44.0},"7388742990":{"due":0.0,"credit":54.0}};
+function kmOff(m){var c=KM_CUSTDB[m]||{due:0,credit:0},cr=Number(c.credit)||0,lk=(Number(c.due)||0)>0&&cr>0,f=(Math.round(cr*100)/100).toLocaleString("en-IN");return'<div class="cuof"><small>🎁 ऑफर</small><b>'+(lk?'<s>₹'+f+'</s>':'₹'+(cr>0?f:'00'))+'</b>'+(lk?'<small>उधार बाकी</small>':'')+'</div>'}
+(function(){var st=document.createElement("style");st.textContent=".oc.cul{position:relative}.cuof{position:absolute;right:14px;top:12px;text-align:center;border:2px solid #dc2626;border-radius:12px;padding:5px 12px;background:#fff5f4;color:#dc2626;line-height:1.25;z-index:1}.cuof small{display:block;font-size:11px;font-weight:800}.cuof b{font-size:20px;font-weight:900}";document.head.appendChild(st)})();
 
 function kmCls(o){var s=ns(o.status);if(s==="Done")return"d";if(s==="DelCancelled")return"x2";if(s==="Cancelled")return o.cancelby==="Shop"?"xs":"x1";return"p"}
 /* ग्राहक का रिकॉर्ड: Done / Cancel / डिलीवरी पर Cancel / Pending गिनकर ब्लॉक तय करता है
@@ -625,7 +636,7 @@ if(custSel){var g=null;G.forEach(function(x){if(x.m===custSel)g=x});
  L.forEach(function(o){h+=kmOrd(o)})}
 else{var A=G.filter(function(x){return !q||(x.name+" "+x.m).toLowerCase().indexOf(q)>=0});
  h+='<div class="cuht">👥 कुल ग्राहक: '+A.length+' – किसी पर क्लिक करके उसकी पूरी हिस्ट्री देखिए</div>';
- A.forEach(function(x){h+='<div class="oc cul" data-cu="'+esc(x.m)+'"><div class="sec"><div class="cun">👤 '+esc(x.name||"—")+'</div><div class="cum">📞 '+esc(x.m)+'</div>'+kmChips(x.st)+kmTog(x.m,x.st)+'<div class="cuo2">पूरी हिस्ट्री देखें ›</div></div></div>'});
+ A.forEach(function(x){h+='<div class="oc cul" data-cu="'+esc(x.m)+'">'+kmOff(x.m)+'<div class="sec"><div class="cun">👤 '+esc(x.name||"—")+'</div><div class="cum">📞 '+esc(x.m)+'</div>'+kmChips(x.st)+kmTog(x.m,x.st)+'<div class="cuo2">पूरी हिस्ट्री देखें ›</div></div></div>'});
  if(!A.length)h+='<div class="empty">कोई ग्राहक नहीं मिला<br>(जिसने ऑर्डर किया वही यहाँ आएगा)</div>'}
 document.getElementById("list").innerHTML=h;
 document.getElementById("bo2").className="";document.getElementById("bc").className="";document.getElementById("bcu").className="on"}
@@ -772,6 +783,46 @@ function waNotify(o){var m=tel10(o.mobile);if(m.length!==10)return;var k=String(
  fetch(u+"/admin/send",{method:"POST",headers:{"Content-Type":"application/json","ngrok-skip-browser-warning":"1"},body:JSON.stringify({pin:getPin(),mobile:m,text:txt})})
  .then(function(r){return r.json()}).then(function(j){if(j&&j.ok){waMark(k);kmToast("✔ ग्राहक को WhatsApp मैसेज चला गया ("+m+")")}else waCheck(o,m,txt,k,j&&j.error)})
  .catch(function(){waCheck(o,m,txt,k,"")})}
+</script>
+<script id="jama">
+/* ===== 💰 जमा: हर डिलीवरी वाले से कितना लेना है + जमा करने का box (🛵 बटन के अंदर) =====
+   JAMA_FROM से पहले की डिलीवरी गिनती में नहीं आतीं. सिर्फ़ Cash on Delivery के ऑर्डर गिने जाते हैं. */
+var JK2="kms_jama_cache",JQ="kms_jama_delq",JAMA_FROM="2026-11-15",jama=ld(JK2),jdq=ld(JQ),jmv={},jOkNet=null;
+function jAmt(o){var R=num(o.rate),T=(o.total!==""&&o.total!=null)?num(o.total):(R!==null?R*(num(o.qty)||1):null),OF=num(o.offer)||0;if(T===null)return 0;return(OF>0&&String(o.offerref)!=="1")?Math.max(0,T-OF):T}
+function jCash(o){var p=String(o.payment||"").toLowerCase();if(p&&p.indexOf("cash")<0&&p.indexOf("कैश")<0&&p.indexOf("नकद")<0)return 0;return jAmt(o)||0}
+function jOkO(o){var t=String(o.upd||o.time||"");return !t||t.slice(0,10)>=JAMA_FROM}
+function jCalc(m){m=tel10(m);var r={out:0,done:0,paid:0,no:0,nd:0,list:[]};
+orders.forEach(function(o){if(tel10(o.dboy)!==m||!jOkO(o))return;var s=ns(o.status);if(s==="OutForDelivery"){var a=jCash(o);if(a>0){r.out+=a;r.no++}}else if(s==="Done"){var a2=jCash(o);if(a2>0){r.done+=a2;r.nd++}}});
+jama.forEach(function(x){if(tel10(x.mobile)!==m||jdq.indexOf(x.id)>=0)return;r.paid+=num(x.amount)||0;r.list.push(x)});
+r.list.sort(function(a,b){return String(b.time).localeCompare(String(a.time))});r.net=Math.round((r.out+r.done-r.paid)*100)/100;return r}
+function jBox(b){var m=tel10(b.mobile),r=jCalc(m),neg=r.net<0;
+var h='<div class="jbx"><div class="jbt"><span>💰 '+(neg?'आगे जमा है':'इससे लेना बाकी')+'</span><b>'+inr(Math.abs(r.net))+'</b></div>'
++'<div class="bxa">🛵 रास्ते में '+inr(r.out)+' ('+r.no+') • ✅ डिलीवर हुए '+inr(r.done)+' ('+r.nd+') • 💵 जमा '+inr(r.paid)+'</div>'
++'<div class="jbr"><input type="text" inputmode="decimal" maxlength="8" class="jin" data-jm="'+esc(m)+'" placeholder="कितना लिया (₹)" value="'+esc(jmv[m]||"")+'"><button type="button" data-ja="add" data-bm="'+esc(m)+'">✅ जमा करें</button></div>';
+r.list.slice(0,3).forEach(function(x){h+='<div class="jbl"><span>💵 '+inr(x.amount)+' • '+esc(fshort(x.time))+(x._l?' ⏳':'')+'</span><button type="button" data-ja="del" data-bm="'+esc(m)+'" data-jid="'+esc(x.id)+'">✖</button></div>'});
+return h+'</div>'}
+function jTop(){var t=0;boys.forEach(function(b){t+=jCalc(b.mobile).net});t=Math.round(t*100)/100;
+return '<div class="jtop">💰 सभी डिलीवरी वालों से कुल लेना बाकी: <b>'+inr(t)+'</b></div>'+(jOkNet===false?'<div class="dlw">⚠ जमा Google Sheet में सेव नहीं हो पा रहा – Apps Script में JAMA_Code.gs जोड़िए। तब तक डिलीवरी वाले को जमा नहीं दिखेगा (यहाँ आपके फ़ोन में दिखता रहेगा)</div>':'')}
+function jSend(e){bpost({action:"jama",op:"add",id:e.id,mobile:e.mobile,amount:e.amount,time:e.time,note:e.note||""})}
+function jAdd(m,a){var e={id:"J"+Date.now().toString(36)+Math.random().toString(36).slice(2,5).toUpperCase(),mobile:tel10(m),amount:a,time:new Date().toISOString(),_l:1};jama.push(e);sv(JK2,jama);jSend(e)}
+function jDel(id){jdq.push(id);sv(JQ,jdq);sv(JK2,jama);bpost({action:"jama",op:"del",id:id})}
+function jfetch(){var u=getBUrl();if(!bok()||!getPin())return;
+fetch(u+(u.indexOf("?")<0?"?":"&")+"action=jama&pin="+encodeURIComponent(getPin())+"&t="+Date.now()).then(function(r){return r.json()}).then(function(j){
+if(!(j&&j.ok&&Array.isArray(j.list))){jOkNet=false;return}
+jOkNet=true;var srv={},keep=[];
+j.list.forEach(function(x){if(x&&x.id){x.id=String(x.id);x.mobile=tel10(x.mobile);srv[x.id]=1;keep.push(x)}});
+jama.forEach(function(x){if(x._l&&!srv[x.id]&&jdq.indexOf(x.id)<0){keep.push(x);jSend(x)}});
+jdq=jdq.filter(function(id){if(srv[id]){bpost({action:"jama",op:"del",id:id});return true}return false});
+jama=keep;sv(JK2,jama);sv(JQ,jdq);if(document.getElementById("bfn"))redrawKeep()}).catch(function(){})}
+var _bfj=bfetch;bfetch=function(cb){jfetch();return _bfj.apply(this,arguments)};
+document.getElementById("shb").addEventListener("input",function(e){var t=e.target;if(!t.classList||!t.classList.contains("jin"))return;
+var v=t.value.replace(/[^0-9.]/g,"").replace(/(\..*)\./g,"$1");if(v!==t.value)t.value=v;jmv[t.getAttribute("data-jm")]=v});
+document.getElementById("shb").addEventListener("click",function(e){var b=e.target.closest("[data-ja]");if(!b)return;
+var k=b.getAttribute("data-ja"),m=b.getAttribute("data-bm"),x=boyBy(m),nm=(x&&x.name)||m;
+if(k==="add"){var v=num(jmv[m]);if(!v||v<=0){alert("पहले कितने रुपये लिए वह डालिए");return}v=Math.round(v*100)/100;
+askYes("💰 "+nm+" से "+inr(v)+" जमा करें?",function(){jAdd(m,v);jmv[m]="";boysSheet()},"हाँ, जमा करें");return}
+if(k==="del"){var id=b.getAttribute("data-jid");askYes("✖ यह जमा हटाएँ? (गलती से डाला हो तो)",function(){jDel(id);boysSheet()},"हाँ, हटाएँ")}});
+jfetch();
 </script>
 </body>
 </html>

@@ -32,12 +32,17 @@ html:has(#ov.on),body:has(#ov.on){overflow:hidden}
 .sh{background:#fff;width:100%;max-width:460px;border-radius:16px;padding:14px;max-height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}.sh h3{margin:0 0 12px;font-size:17px}.sh .r{display:flex;gap:8px}.sh .r button{flex:1;padding:13px;font-size:16px;font-weight:900;border-radius:12px;border:0}
 .st.n{background:#fff3e0;color:#b45309}.st.s{background:#ede7fb;color:#5b2fb0}.tb{font-size:12px;padding:10px 4px;line-height:1.25}
 .pc{display:inline-block;margin-left:8px;font-size:12px;font-weight:900;background:#fff3e0;color:#b45309;border:1px solid #f5c58a;border-radius:999px;padding:2px 9px;vertical-align:middle}.kv span.pcb{width:auto;white-space:nowrap;display:inline-block;background:#fff3e0;border:1px solid #f5c58a;color:#b45309;border-radius:10px;padding:2px 10px;font-size:18px;font-weight:900;letter-spacing:.5px}</style><style id="noanchor">/* Scroll jagah par rahe: browser list ko apne aap upar-neeche na khiske */html,body,#list,#app,.xpg,#xod,#dt,#by,.sh{overflow-anchor:none}</style>
+<style id="jamacss">
+.jb{margin:8px 10px 0;background:linear-gradient(180deg,#fff7e6,#ffecc2);border:2px solid #f5c58a;border-radius:14px;padding:10px 12px}
+.jt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:900;font-size:15px;color:#7a3e00}.jt b{font-size:26px;color:#b42410}
+.js{font-size:12px;font-weight:800;color:#6b4a1d;margin-top:4px;line-height:1.45}
+</style>
 </head><body>
 <header><div><b>🛵 KING DELIVERY</b><br><span id="who"></span></div><div><button id="br">🔄</button> <button id="bo">Logout</button></div></header>
 <div id="app"></div>
 <div id="ov"><div class="sh" id="shb"></div></div>
 <script>
-var URL_="https://script.google.com/macros/s/AKfycbzEeBH83lSB2w4TUS1geSCbuBSyoUl91Kin98TSyN9hbL71BZmhO-wiBHMpVAo1PcoUsg/exec";  // Orders wala /exec link (Order Check wala hi)
+var URL_="https://script.google.com/macros/s/AKfycby739dRs7oX_SYidOaq4mUbD7VZz660VSrk07gECF7Zd2lcvAZlDVblicIKbDadBch4/exec";  // Orders wala /exec link (Order Check wala hi)
 var LOG_URL=URL_;   // wahi ek link (KING_ALL_IN_ONE)
 var MK="kms_boy_mobile",OK="kms_boy_ov",CK="kms_boy_cov",me="",all=[],ov={},cps=[],cov={},tab="out",last="",BK="kms_boy_info",RK="kms_boy_rv",boy=null,rv={};
 var OTP_URL="https://helium-unbeaten-progeny.ngrok-free.dev"; /* WhatsApp OTP server ka link. Khali = OTP band */
@@ -167,6 +172,33 @@ clearTimeout(tm);tm=setTimeout(function(){armed=false;guard()},2500)});
 (function(){var bases={},r=document.documentElement;
 function f(){var h=window.innerHeight,w=window.innerWidth;if(!(bases[w]>=h))bases[w]=h;r.classList.toggle("kbd",bases[w]-h>140)}
 f();window.addEventListener("resize",f)})();
+</script>
+<script id="jama">
+/* ===== 💰 जमा: डिलीवरी वाले को दुकान को कितना देना है (ऊपर के box में) =====
+   JAMA_FROM से पहले की डिलीवरी गिनती में नहीं आतीं (पुराना हिसाब न जुड़े)।
+   सिर्फ़ Cash on Delivery के ऑर्डर गिने जाते हैं (UPI / उधार का पैसा डिलीवरी वाला नहीं लेता). */
+var JK="kms_boy_jama",jl=[],JAMA_FROM="2026-11-15",jT="";
+(function(){var c=lget(JK,null);if(c&&c.m===me&&Array.isArray(c.l))jl=c.l})();
+function jCash(o){var p=String(o.payment||"").toLowerCase();if(p&&p.indexOf("cash")<0&&p.indexOf("कैश")<0&&p.indexOf("नकद")<0)return 0;return amt(o)||0}
+function jOk(o){var t=String(o.upd||o.time||"");return !t||t.slice(0,10)>=JAMA_FROM}
+function jCalc(){var r={out:0,done:0,paid:0,no:0,nd:0,last:null};
+all.forEach(function(o){if(t10(o.dboy)!==me||!jOk(o))return;var s=st(o);if(s==="OutForDelivery"){var a=jCash(o);if(a>0){r.out+=a;r.no++}}else if(s==="Done"){var a2=jCash(o);if(a2>0){r.done+=a2;r.nd++}}});
+jl.forEach(function(x){r.paid+=num(x.amount)||0;if(!r.last||String(x.time)>String(r.last.time))r.last=x});
+r.net=Math.round((r.out+r.done-r.paid)*100)/100;return r}
+function jBox(){var r=jCalc(),neg=r.net<0;
+return '<div class="jb"><div class="jt"><span>💰 '+(neg?'दुकान के पास आगे जमा':'दुकान को जमा करना है')+'</span><b>'+inr(Math.abs(r.net))+'</b></div>'
++'<div class="js">🛵 रास्ते में '+inr(r.out)+' ('+r.no+') • ✅ डिलीवर हुए '+inr(r.done)+' ('+r.nd+') • 💵 जमा किया '+inr(r.paid)+'</div>'
++(r.last?'<div class="js">आखिरी जमा: '+inr(r.last.amount)+' • '+esc(fdt(r.last.time))+'</div>':'')+'</div>'}
+function jInject(){if(!me)return;var a=document.getElementById("app"),o=document.getElementById("jbx");if(o&&o.parentNode)o.parentNode.removeChild(o);
+a.insertAdjacentHTML("afterbegin",'<div id="jbx">'+jBox()+'</div>')}
+var _rj=render;render=function(){var r=_rj.apply(this,arguments);try{jInject()}catch(e){}return r};
+function fetchJ(){if(!me||!URL_)return;
+fetch(URL_+(URL_.indexOf("?")<0?"?":"&")+"action=jama&mobile="+me+"&t="+Date.now()).then(function(r){return r.json()}).then(function(j){
+if(!(j&&j.ok&&Array.isArray(j.list)))return;
+var l=j.list.filter(function(x){return t10(x.mobile)===me}),k=JSON.stringify(l);if(k===jT)return;jT=k;jl=l;lset(JK,{m:me,l:l});render()}).catch(function(){})}
+var _faj=fetchAll;fetchAll=function(){_faj.apply(this,arguments);fetchJ()};
+document.getElementById("br").onclick=fetchAll;
+fetchJ();try{jInject()}catch(e){}
 </script>
 <script id="scrollkeep">
 /* ===== Scroll yaad rakho: har tab me jahan chhoda wahin rahe; auto-refresh par bhi list upar-neeche na hile ===== */
