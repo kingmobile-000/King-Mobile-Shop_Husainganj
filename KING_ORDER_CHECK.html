@@ -238,7 +238,7 @@ function fetchOrders(manual){var u=getUrl(),sy=document.getElementById("sync");
 if(!u){sy.textContent="ℹ Google Sheet जुड़ा नहीं है – ⚙ से लिंक डालिए (तब तक सिर्फ़ इसी फ़ोन के / पेस्ट किए ऑर्डर दिखेंगे)";return}
 sy.textContent="⏳ Sheet से ऑर्डर ला रहे हैं…";
 fetch(u+(u.indexOf("?")<0?"?":"&")+"t="+Date.now()).then(function(r){return r.json()}).then(function(j){
-mergeRemote((j&&j.orders)||[]);dropGone(j);cBoys(function(){oAssign()});sy.textContent="✔ अपडेट: "+new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});if(!typing())render()
+mergeRemote((j&&j.orders)||[]);dropGone(j);try{if(typeof kmLogs==="function")kmLogs(j)}catch(e){}cBoys(function(){oAssign()});sy.textContent="✔ अपडेट: "+new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});if(!typing())render()
 }).catch(function(){sy.textContent="⚠ Sheet से नहीं जुड़ पाए – इंटरनेट / लिंक जाँचिए"})}
 
 function stCls(s){return {New:"n",Confirmed:"c",Shipped:"s",OutForDelivery:"o",Done:"d"}[s]||"x"}
@@ -637,7 +637,7 @@ if(custSel){var g=null;G.forEach(function(x){if(x.m===custSel)g=x});
 else{var A=G.filter(function(x){return !q||(x.name+" "+x.m).toLowerCase().indexOf(q)>=0});
  h+='<div class="cuht">👥 कुल ग्राहक: '+A.length+' – किसी पर क्लिक करके उसकी पूरी हिस्ट्री देखिए</div>';
  A.forEach(function(x){h+='<div class="oc cul" data-cu="'+esc(x.m)+'">'+kmOff(x.m)+'<div class="sec"><div class="cun">👤 '+esc(x.name||"—")+'</div><div class="cum">📞 '+esc(x.m)+'</div>'+kmChips(x.st)+kmTog(x.m,x.st)+'<div class="cuo2">पूरी हिस्ट्री देखें ›</div></div></div>'});
- if(!A.length)h+='<div class="empty">कोई ग्राहक नहीं मिला<br>(जिसने ऑर्डर किया वही यहाँ आएगा)</div>'}
+ if(!A.length)h+='<div class="empty">कोई ग्राहक नहीं मिला<br>(जिसने Login या ऑर्डर किया वही यहाँ आएगा)</div>'}
 document.getElementById("list").innerHTML=h;
 document.getElementById("bo2").className="";document.getElementById("bc").className="";document.getElementById("bcu").className="on"}
 var _rC=render;render=function(){var on=custMode;document.getElementById("tabs").style.display=on?"none":"";document.getElementById("ar").style.display=on?"none":"";
@@ -650,6 +650,20 @@ var tg=e.target.closest("[data-idt]");if(tg){e.preventDefault();kmToggle(tg.getA
 var b=e.target.closest("[data-cuback]");if(b){custSel="";render();setTimeout(function(){window.scrollTo(0,0)},60);return}
 var c=e.target.closest("[data-cu]");if(c&&!e.target.closest("a")){custSel=c.getAttribute("data-cu");render();setTimeout(function(){window.scrollTo(0,0)},60)}});
 render();
+</script>
+<script id="kmlogins">
+/* ===== 👥 All Customers me wo customer bhi jinhone app me Login kiya (Google Sheet ke "Logins" tab se) ===== */
+var KMLG="kms_logins_cache";
+function kmLogsGet(){try{var a=JSON.parse(localStorage.getItem(KMLG)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
+function kmLogs(j){if(!j||!Array.isArray(j.logins))return;var a=[];j.logins.forEach(function(l){if(l&&l.m)a.push({m:tel10(l.m),n:l.n||"",t:l.t||""})});try{localStorage.setItem(KMLG,JSON.stringify(a))}catch(e){}}
+var _kmG0=kmGroups;
+kmGroups=function(){var A=_kmG0(),seen={};A.forEach(function(x){seen[x.m]=1});
+ kmLogsGet().forEach(function(l){var m=tel10(l.m);if(m.length!==10||seen[m])return;seen[m]=1;var st=kmStat([]),ov=ovGet(m);if(ov&&ov.s==="off"){st.blocked=true;st.manual=true}A.push({m:m,name:String(l.n||"").split(",")[0],list:[],st:st,last:l.t})});
+ return A.sort(function(a,b){return (Date.parse(b.last)||0)-(Date.parse(a.last)||0)})};
+var _kmT0=kmToggle;
+kmToggle=function(m){if(orders.some(function(o){return tel10(o.mobile)===m}))return _kmT0(m);
+ var ov=ovGet(m),off=!!(ov&&ov.s==="off");
+ if(off){if(confirm("इस ग्राहक की ID चालू (ON) करें?"))ovSet(m,"on")}else{if(confirm("इस ग्राहक की ID बंद (OFF / ब्लॉक) करें?"))ovSet(m,"off")}render()};
 </script>
 <script id="kbback">
 function kbTab(){try{return window.parent!==window&&typeof parent.kbTabBack==="function"&&!!parent.kbTabBack()}catch(e){return false}}
