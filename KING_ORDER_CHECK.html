@@ -175,6 +175,7 @@ html:has(#ov.on),body:has(#ov.on){overflow:hidden}
 .jbl button{border:0;background:#fde4e1;color:#b42410;border-radius:7px;padding:3px 9px;font-weight:900}
 .jtop{margin-top:10px;background:#fff7e6;border:2px solid #f5c58a;border-radius:10px;padding:9px 10px;font-weight:900;font-size:14px;color:#7a3e00}.jtop b{color:#b42410;font-size:18px}
 </style>
+<style id="kmstcss">.kmst{flex:none;margin-left:auto;width:66px;text-align:center;cursor:pointer}.kmst img{display:block;width:66px;height:66px;object-fit:cover;border-radius:8px;border:1.5px solid #0b57d0;background:#eee}.kmst small{display:block;font-size:10px;font-weight:800;color:#0b57d0;line-height:1.2;margin-top:3px}.kmse{font-size:26px}</style>
 </head>
 <body>
 <header>
@@ -228,7 +229,7 @@ arr.forEach(function(r){if(!r||!r.id)return;r.id=String(r.id);r.mobile=tel10(r.m
 if(!l){orders.push(r);by[r.id]=r;ch=true;return}
 if(l._dirty){if(r.status===l.status||Date.now()-Number(l._dirty)>20000){delete l._dirty;ch=true;if(r.status===l.status){if(mh(l,r))ch=true;return}}else{if(mh(l,r))ch=true;return}}
 var was=l.status;
-["no","status","item","sku","warranty","mrate","rate","qty","total","stock","name","mobile","delivery","address","city","pin","payment","note","time","dboy","cancelby","upd","offer","offerref","billno"].forEach(function(k){if(r[k]!==undefined&&r[k]!==""&&String(l[k])!==String(r[k])){l[k]=r[k];ch=true}});
+["no","status","item","sku","warranty","mrate","rate","qty","total","stock","name","mobile","delivery","address","city","pin","payment","note","time","dboy","cancelby","upd","offer","offerref","billno","shot","sthumb","upiamt","utr"].forEach(function(k){if(r[k]!==undefined&&r[k]!==""&&String(l[k])!==String(r[k])){l[k]=r[k];ch=true}});
 if(was!==l.status){hmark(l,l.status,r.upd||"");ch=true}if(mh(l,r))ch=true;if(was!==l.status&&offerRefund(l))ch=true;
 if(!l.thumb&&r.thumb){l.thumb=r.thumb;ch=true}});
 if(ch)save()}
@@ -271,12 +272,13 @@ document.getElementById("list").addEventListener("click",function(e){var c=e.tar
 try{navigator.clipboard.writeText(t)}catch(x){var q=document.createElement("textarea");q.value=t;document.body.appendChild(q);q.select();try{document.execCommand("copy")}catch(y){}q.remove()}
 c.textContent="✓ कॉपी हो गया";setTimeout(function(){c.textContent="📋 कॉपी"},1500)});
 document.getElementById("list").addEventListener("click",function(e){var c=e.target.closest("[data-pvset]");if(!c)return;e.preventDefault();var id=c.getAttribute("data-pvset"),v=prompt("ग्राहक का 6 अंक का पिन कोड लिखिए (कॉल करके पूछ लीजिए):","");if(v===null)return;v=String(v).replace(/\D/g,"");if(v.length!==6){alert("⚠ पिन 6 अंक का होना चाहिए");return}var m=pvGet();m[id]=v;try{localStorage.setItem("kms_pin_ov",JSON.stringify(m))}catch(x){}render()});
+function payTxt(o){var p=String(o.payment||"");if(p==="UPI")return"✅ UPI Done";if(p.toLowerCase().indexOf("cash")>=0)return"💵 Cash";return p||"—"}
 function card(o){
 var M=num(o.mrate),R=num(o.rate),im=o.thumb?'<img src="'+esc(o.thumb)+'" alt="">':'📦',m=tel10(o.mobile),pn=pinOf(o),fin=isFinal(o);
 var h='<div class="oc ocg"><div class="oh"><div><div class="oid">'+(o.no?esc(o.no):'#'+esc(o.id)+(getUrl()?' <span style="font-size:11px;color:#888">(नंबर आ रहा है…)</span>':''))+(pn?'<span class="pc">📍 PIN '+esc(pn)+'</span>':'')+'</div><div class="otm">'+esc(fmt(o.time))+'</div></div><span class="st '+stCls(ns(o.status))+'">'+esc(SL[ns(o.status)]||o.status)+'</span></div>';
 h+='<div class="otk">'+trk(o)+(typeof kmRisk==='function'?kmRisk(o):'')+'</div>';
 h+='<div class="sec si"><div class="sl">🛒 आइटम की पूरी जानकारी</div><div class="it"><div class="th">'+im+'</div><div><div class="in">'+esc(o.item)+'</div><div class="pr">'+(M!==null?'<span class="pm">'+inr(M)+'</span>':'')+(R!==null?'<span class="pg">'+inr(R)+'</span>':'')+'</div>';
-h+='<div class="ch">'+(o.sku!==""&&o.sku!=null?'<span class="cp">SKU: '+esc(o.sku)+'</span>':'')+(o.warranty?'<span class="cp w">🛡 '+esc(o.warranty)+'</span>':'')+(o.stock?'<span class="cp">Stock: '+esc(o.stock)+'</span>':'')+'<span class="cp">मात्रा: '+esc(o.qty||1)+'</span></div></div></div>';
+h+='<div class="ch">'+(o.sku!==""&&o.sku!=null?'<span class="cp">SKU: '+esc(o.sku)+'</span>':'')+(o.warranty?'<span class="cp w">🛡 '+esc(o.warranty)+'</span>':'')+(o.stock?'<span class="cp">Stock: '+esc(o.stock)+'</span>':'')+'<span class="cp">मात्रा: '+esc(o.qty||1)+'</span></div></div>'+(o.shot?'<div class="kmst" data-shot="'+esc(o.id)+'" data-no="'+esc(o.no||"")+'">'+(o.sthumb?'<img alt="" src="'+esc(o.sthumb)+'">':'<span class="kmse">📷</span>')+'<small>पेमेंट का फोटो</small></div>':'')+'</div>';
 var T=(o.total!==""&&o.total!=null)?num(o.total):(R!==null?R*(num(o.qty)||1):null),OF=num(o.offer)||0,RF=String(o.offerref)==="1";
 h+='<div class="tot"><span>कुल रकम</span><span>'+(T!==null?inr(T):"—")+'</span></div>';
 if(OF>0)h+='<div class="tot of'+(RF?' rf':'')+'"><span>🎁 ऑफर'+(RF?' (वापस हुआ)':' (कटा)')+'</span><span>'+(RF?'':'−')+inr(OF)+'</span></div>'+(RF?'':'<div class="tot"><span>देना है</span><span>'+(T!==null?inr(Math.max(0,T-OF)):"—")+'</span></div>');
@@ -286,7 +288,8 @@ h+='<div class="kv"><span>WhatsApp</span><span><a class="tl" target="_blank" hre
 if(pn)h+='<div class="kv"><span>पिन कोड</span><span><span class="pcb">📍 '+esc(pn)+'</span></span></div>';else if(o.delivery==="घर")h+='<div class="kv"><span>पिन कोड</span><span style="color:#b42410">⚠ ग्राहक ने पिन नहीं डाला (पुराना App?)<br><a href="#" class="kcp" data-pvset="'+esc(o.id)+'">✏ पिन जोड़ें</a></span></div>';
 h+='<div class="kv"><span>सामान</span><span>'+(o.delivery==="घर"?"🚚 घर पर मँगवाना":"🏪 दुकान से लेना")+'</span></div>';
 if(o.delivery==="घर")h+=kmAddr(o);
-h+='<div class="kv"><span>पेमेंट</span><span>'+esc(o.payment||"—")+'</span></div>';
+h+='<div class="kv"><span>पेमेंट</span><span style="font-weight:900">'+esc(payTxt(o))+'</span></div>'+(o.upiamt?'<div class="kv"><span>UPI रकम (पैसे सहित)</span><span style="font-weight:900">₹'+esc(o.upiamt)+'</span></div>':'')+(o.utr?'<div class="kv"><span>UPI Transaction ID</span><span style="font-weight:900">'+esc(o.utr)+'</span></div>':'');
+if(String(o.payment)==="UPI")h+='<div class="kv"><span>स्क्रीनशॉट</span><span><a href="#" class="kcp" data-shot="'+esc(o.id)+'" data-no="'+esc(o.no||"")+'">📷 पेमेंट स्क्रीनशॉट देखें</a></span></div>';
 h+='<div class="kv kvo"><span>ऑर्डर नंबर</span><span style="color:#e63c1f;font-size:17px;letter-spacing:.5px">'+(o.no?esc(o.no):'#'+esc(o.id))+'</span></div>';
 if(o.note)h+='<div class="kv"><span>नोट</span><span>'+esc(o.note)+'</span></div>';
 h+='</div>';
@@ -623,7 +626,7 @@ if(s==="DelCancelled")return"❌ डिलीवरी पर रद्द (ड�
 if(s==="Cancelled")return o.cancelby==="Shop"?"❌ दुकान की तरफ़ से रद्द":"❌ ग्राहक ने खुद रद्द किया";
 return"⏳ "+(SL[s]||s)}
 function kmOrd(o){var T=(o.total!==""&&o.total!=null)?num(o.total):null;
-return'<div class="oc"><div class="oh"><div><div class="oid">'+esc(o.no||"#"+o.id)+'</div><div class="otm">'+esc(fmt(o.time))+'</div></div><span class="st '+stCls(ns(o.status))+'">'+esc(SL[ns(o.status)]||o.status)+'</span></div><div class="sec"><div class="sl">🛒 क्या मँगवाया</div><div class="in">'+esc(o.item)+'</div><div class="ch"><span class="cp">मात्रा: '+esc(o.qty||1)+'</span>'+(T!==null?'<span class="cp w">'+inr(T)+'</span>':'')+'<span class="cp">'+(o.delivery==="घर"?"🚚 घर पर":"🏪 दुकान से")+'</span><span class="cp">'+esc(o.payment||"—")+'</span></div><div class="kv" style="margin-top:8px"><span>स्थिति</span><span>'+kmWhy(o)+'</span></div></div></div>'}
+return'<div class="oc"><div class="oh"><div><div class="oid">'+esc(o.no||"#"+o.id)+'</div><div class="otm">'+esc(fmt(o.time))+'</div></div><span class="st '+stCls(ns(o.status))+'">'+esc(SL[ns(o.status)]||o.status)+'</span></div><div class="sec"><div class="sl">🛒 क्या मँगवाया</div><div class="in">'+esc(o.item)+'</div><div class="ch"><span class="cp">मात्रा: '+esc(o.qty||1)+'</span>'+(T!==null?'<span class="cp w">'+inr(T)+'</span>':'')+'<span class="cp">'+(o.delivery==="घर"?"🚚 घर पर":"🏪 दुकान से")+'</span><span class="cp">'+esc(payTxt(o))+'</span></div><div class="kv" style="margin-top:8px"><span>स्थिति</span><span>'+kmWhy(o)+'</span></div></div></div>'}
 function drawCust(){var q=document.getElementById("q").value.trim().toLowerCase(),G=kmGroups(),h="";
 if(custSel){var g=null;G.forEach(function(x){if(x.m===custSel)g=x});
  if(!g){custSel="";drawCust();return}
@@ -837,6 +840,38 @@ if(k==="add"){var v=num(jmv[m]);if(!v||v<=0){alert("पहले कितने
 askYes("💰 "+nm+" से "+inr(v)+" जमा करें?",function(){jAdd(m,v);jmv[m]="";boysSheet()},"हाँ, जमा करें");return}
 if(k==="del"){var id=b.getAttribute("data-jid");askYes("✖ यह जमा हटाएँ? (गलती से डाला हो तो)",function(){jDel(id);boysSheet()},"हाँ, हटाएँ")}});
 jfetch();
+</script>
+<script id="kmshot">
+/* ===== KM: ग्राहक का पेमेंट स्क्रीनशॉट देखना ===== */
+(function(){
+if(window.__kmShotAdm)return;window.__kmShotAdm=1;
+function E(i){return document.getElementById(i)}
+function ov(h){var d=E("kmshov");if(d)d.remove();d=document.createElement("div");d.id="kmshov";
+ d.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483000;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:12px";
+ d.innerHTML='<div style="background:#fff;color:#111;border-radius:14px;width:100%;max-width:460px;max-height:94vh;overflow:auto;padding:14px;text-align:center">'+h+'<button id="kmshx" style="margin-top:12px;width:100%;border:0;border-radius:10px;padding:12px;font-size:16px;font-weight:900;background:#6b7280;color:#fff">बंद करें</button></div>';
+ document.body.appendChild(d);E("kmshx").onclick=function(){d.remove()};d.addEventListener("click",function(e){if(e.target===d)d.remove()})}
+function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+document.addEventListener("click",function(ev){
+ var a=ev.target.closest&&ev.target.closest("[data-shot]");if(!a)return;ev.preventDefault();ev.stopPropagation();
+ var id=a.getAttribute("data-shot"),no=a.getAttribute("data-no"),o={};
+ try{o=orders.filter(function(x){return String(x.id)===String(id)})[0]||{}}catch(e){}
+ var head='<div style="font-size:16px;font-weight:900">ऑर्डर नंबर: <span style="color:#e63c1f">'+esc(no||o.no||id)+'</span></div>'+
+  '<div style="font-size:13px;color:#444;font-weight:700;margin:4px 0 8px">ऑर्डर का समय: '+esc(fmt(o.time))+(o.total!==undefined&&o.total!==""?' · रकम: '+inr(o.total):'')+'</div>';
+ ov(head+'<div style="margin:18px 0;font-weight:800">⏳ स्क्रीनशॉट आ रहा है…</div>');
+ var u=getUrl();
+ if(!u){ov(head+'<div style="margin:14px 0;color:#b42410;font-weight:800">Google Script का लिंक नहीं मिला</div>');return}
+ fetch(u+(u.indexOf("?")<0?"?":"&")+"action=shot&id="+encodeURIComponent(id)+"&no="+encodeURIComponent(no||o.no||"")+"&pin="+encodeURIComponent(getPin())+"&t="+Date.now())
+ .then(function(r){return r.json()}).then(function(j){
+  if(j&&j.ok&&j.data){
+   var line="";
+   if(j.photoTime){var pt=new Date(j.photoTime),ot=new Date(o.time);
+    if(!isNaN(pt)&&!isNaN(ot)){line=sameDay(pt,ot)?'<div style="color:#16a34a;font-weight:800;margin:6px 0">✔ फोटो की तारीख = ऑर्डर की तारीख ('+esc(pt.toLocaleDateString("en-IN"))+')</div>':'<div style="color:#dc2626;font-weight:800;margin:6px 0">⚠ फोटो की तारीख '+esc(pt.toLocaleDateString("en-IN"))+' है, ऑर्डर '+esc(ot.toLocaleDateString("en-IN"))+' का है</div>'}}
+   ov(head+line+'<div style="font-size:12px;color:#555;font-weight:700;margin:4px 0">देखिए: स्क्रीनशॉट में यही ऑर्डर नंबर, आज की तारीख और सही रकम दिख रही है या नहीं</div><img src="'+j.data+'" style="max-width:100%;border:1px solid #ccc;border-radius:8px" alt="">');
+  }else if(j&&j.gone)ov(head+'<div style="margin:14px 0;color:#555;font-weight:800;line-height:1.6">ℹ डिलीवरी Done के 3 दिन बाद यह फोटो अपने-आप हटा दिया गया है।</div>');else ov(head+'<div style="margin:14px 0;color:#b42410;font-weight:800;line-height:1.6">इस ऑर्डर का स्क्रीनशॉट सर्वर में नहीं मिला।<br><span style="font-size:12px;color:#555">(ग्राहक ने नहीं लगाया, या Google Script में स्क्रीनशॉट वाला हिस्सा अभी जुड़ा नहीं है)</span></div>')
+ }).catch(function(){ov(head+'<div style="margin:14px 0;color:#b42410;font-weight:800">⚠ सर्वर तक नहीं पहुँचा, नेट जाँचिए</div>')})
+},true);
+})();
+
 </script>
 </body>
 </html>
