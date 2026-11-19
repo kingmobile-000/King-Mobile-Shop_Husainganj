@@ -272,7 +272,7 @@ document.getElementById("list").addEventListener("click",function(e){var c=e.tar
 try{navigator.clipboard.writeText(t)}catch(x){var q=document.createElement("textarea");q.value=t;document.body.appendChild(q);q.select();try{document.execCommand("copy")}catch(y){}q.remove()}
 c.textContent="✓ कॉपी हो गया";setTimeout(function(){c.textContent="📋 कॉपी"},1500)});
 document.getElementById("list").addEventListener("click",function(e){var c=e.target.closest("[data-pvset]");if(!c)return;e.preventDefault();var id=c.getAttribute("data-pvset"),v=prompt("ग्राहक का 6 अंक का पिन कोड लिखिए (कॉल करके पूछ लीजिए):","");if(v===null)return;v=String(v).replace(/\D/g,"");if(v.length!==6){alert("⚠ पिन 6 अंक का होना चाहिए");return}var m=pvGet();m[id]=v;try{localStorage.setItem("kms_pin_ov",JSON.stringify(m))}catch(x){}render()});
-function payTxt(o){var p=String(o.payment||"");if(p==="UPI")return"✅ UPI Done";if(p.toLowerCase().indexOf("cash")>=0)return"💵 Cash";return p||"—"}
+function payTxt(o){var p=String(o.payment||"");if(p==="UPI")return"✅ UPI Done";if(p==="Razorpay")return"✅ Razorpay Paid";if(p.toLowerCase().indexOf("cash")>=0)return"💵 Cash";return p||"—"}
 function card(o){
 var M=num(o.mrate),R=num(o.rate),im=o.thumb?'<img src="'+esc(o.thumb)+'" alt="">':'📦',m=tel10(o.mobile),pn=pinOf(o),fin=isFinal(o);
 var h='<div class="oc ocg"><div class="oh"><div><div class="oid">'+(o.no?esc(o.no):'#'+esc(o.id)+(getUrl()?' <span style="font-size:11px;color:#888">(नंबर आ रहा है…)</span>':''))+(pn?'<span class="pc">📍 PIN '+esc(pn)+'</span>':'')+'</div><div class="otm">'+esc(fmt(o.time))+'</div></div><span class="st '+stCls(ns(o.status))+'">'+esc(SL[ns(o.status)]||o.status)+'</span></div>';
