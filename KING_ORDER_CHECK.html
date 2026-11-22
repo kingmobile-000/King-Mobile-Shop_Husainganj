@@ -188,7 +188,7 @@ html:has(#ov.on),body:has(#ov.on){overflow:hidden}
 <div id="sync"></div>
 <div id="list"></div>
 
-<div class="cbar"><button id="bo2" class="on">📦 Orders (0)</button><button id="bc">🛠 Complaint (0)</button><button id="bcu">👥 All Customers</button></div>
+<div class="cbar"><button id="bo2" class="on">📦 Orders (0)</button><button id="bc">🛠 Complaint (0)</button><button id="bcu">👥 All Customers</button><button id="bfb">🔥 F/B</button></div>
 <div id="sdov"></div>
 <aside id="sd" aria-hidden="true"><div class="sdh"><b>☰ मेन्यू</b><button id="sdx" type="button">✕</button></div>
 <button class="sdi ul" id="sd_ul" type="button">🔗 App Send Link<small>ग्राहक के 📲 App Send का लिंक</small></button>
@@ -872,6 +872,133 @@ document.addEventListener("click",function(ev){
 },true);
 })();
 
+</script>
+<style id="kfbadm">
+.cbar button{min-width:0;font-size:12px!important;line-height:1.25;padding:10px 2px!important}
+#bfb.on{background:#e63c1f;color:#fff}
+.fbn{margin:8px 10px;padding:10px 12px;border-radius:12px;background:#fff3e0;color:#b45309;font-weight:800;font-size:13px;line-height:1.5}
+.fbn button{margin-top:6px;border:0;background:#e63c1f;color:#fff;border-radius:9px;padding:9px 12px;font-weight:900;font-size:14px}
+.fbp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.fbb{border:0;background:linear-gradient(90deg,#ff3b00,#ff8a00);color:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:900;margin-left:auto}
+.fbb.on{box-shadow:0 0 0 3px rgba(255,106,0,.35)}
+.fbs{margin-top:8px;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:800;line-height:1.5;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fbs.live{background:#fff1e6;color:#b34500;border:1px solid #ffb27a}
+.fbs.off{background:#eef0f3;color:#444}
+.fbs b{font-variant-numeric:tabular-nums;font-size:15px}
+.tgl{flex:none;width:58px;height:30px;border-radius:999px;border:0;background:#c7cbd1;position:relative;padding:0}
+.tgl::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tgl.on{background:#16a34a}.tgl.on::after{left:31px}
+.sh label.fbl{font-size:13px;font-weight:900;color:#333;margin-bottom:-4px}
+.fbch{display:flex;gap:6px}.fbch button{flex:1;padding:9px 0;border:0;border-radius:9px;background:#eef0f3;font-weight:900;font-size:14px}
+.fbtm{font-size:14px;font-weight:800;color:#b34500}.fbtm b{font-variant-numeric:tabular-nums;font-size:17px}
+.fbpv{font-size:13px;font-weight:800;color:#7a2a00;background:#fff4e8;border:1px dashed #ff8a00;border-radius:10px;padding:8px 10px;line-height:1.5}
+.fbsw{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f6f7f9;border-radius:12px;padding:10px 12px;font-size:15px;font-weight:900}
+.fbrow2{display:flex;gap:8px}.fbrow2>div{flex:1;display:flex;flex-direction:column;gap:4px}
+.fbmore{display:block;width:calc(100% - 20px);margin:8px 10px;padding:12px;border:0;border-radius:12px;background:#eef0f3;font-size:15px;font-weight:900}
+</style>
+<script id="kfbadmjs">
+/* ===== F/B (Fire Besh) control: item ka rate kuch der ke liye badlo, time/piece khatam hote hi rate pehle jaisa ===== */
+var FB_URL_DEFAULT="https://script.google.com/macros/s/AKfycby739dRs7oX_SYidOaq4mUbD7VZz660VSrk07gECF7Zd2lcvAZlDVblicIKbDadBch4/exec?fb=1";   /* F/B ab KING_ALL_IN_ONE.gs ke andar hi hai: wahi /exec link + ?fb=1 */
+(function(){
+var TOK="KING-FB-2026",fbMode=false,fbItems=[],fbS={},fbOff=0,fbShow=1e6,fbErr="",fbIT=0,fbBusy=false;
+function el(i){return document.getElementById(i)}
+function fbUrl(){var u=FB_URL_DEFAULT;try{u=localStorage.getItem("kms_fb_url")||u}catch(e){}return u}
+function sKey(o){var s=String(o&&o.SKU!=null?o.SKU:"").trim();if(s)return"S:"+s.toLowerCase();return"N:"+String(o&&o.Item!=null?o.Item:"").toLowerCase().replace(/[^a-z0-9\u0900-\u097f]/g,"")}
+function isS(q){return q==="Yes"||q==="NO"||q==="Hai"||q==="Nahi hai"}
+function prep(o){var r={Item:String(o.Item==null?"":o.Item).trim(),SKU:o.SKU==null?"":o.SKU,Rate:o.Rate,MRate:o.MRate};
+ if((r.SKU===""||r.SKU===null)&&o.Qty!==undefined&&o.Qty!==null&&o.Qty!==""&&!isS(o.Qty))r.SKU=String(o.Qty);
+ var p=(o.Photos&&o.Photos.length)?o.Photos[0]:(o.Photo?String(o.Photo).split("|")[0]:"");
+ r.th=/^https:\/\/lh3\.googleusercontent\.com\/d\/[^=?#]+$/.test(p)?p+"=w160":p;r.k=sKey(r);return r}
+function fT(ms){ms=Math.max(0,Math.floor(ms/1000));var h=Math.floor(ms/3600),m=Math.floor(ms%3600/60),s=ms%60;return(h<10?"0":"")+h+":"+(m<10?"0":"")+m+":"+(s<10?"0":"")+s}
+function mT(m){m=Math.round(Number(m)||0);if(m<60)return m+" मिनट";var h=Math.floor(m/60),r=m%60;return m+" मिनट ("+h+(r?" घंटे "+r+" मिनट":" घंटे")+")"}
+function nowS(){return Date.now()+fbOff}
+function liveE(e){return!!(e&&e.on&&e.end>nowS()&&(!(e.pcs>0)||e.sold<e.pcs))}
+/* server se baat */
+function loadItems(cb){var u=getUrl();if(!u){fbErr="Google Script का लिंक नहीं मिला";cb&&cb();return}
+ fetch(u+(u.indexOf("?")<0?"?":"&")+"action=items&v=&t="+Date.now()).then(function(r){return r.json()}).then(function(j){
+  if(j&&j.ok&&j.items){fbItems=j.items.filter(function(x){return x&&x.Item!=null&&String(x.Item).indexOf("~~")!==0}).map(prep);fbIT=Date.now()}else fbErr="आइटम की लिस्ट नहीं आई";cb&&cb()}).catch(function(){fbErr="⚠ आइटम की लिस्ट नहीं आ सकी – नेट जाँचिए";cb&&cb()})}
+function loadState(cb){var u=fbUrl();if(!u){cb&&cb();return}
+ fetch(u+(u.indexOf("?")<0?"?":"&")+"action=all&tok="+encodeURIComponent(TOK)+"&t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
+  if(j&&j.ok){fbOff=(Number(j.now)||Date.now())-Date.now();var m={};(j.list||[]).forEach(function(e){if(e&&e.k)m[e.k]=e});fbS=m;fbErr=""}else fbErr="⚠ F/B Script ने मना किया (Token / लिंक जाँचिए)";cb&&cb()}).catch(function(){fbErr="⚠ F/B Script तक नहीं पहुँचे – लिंक / नेट जाँचिए";cb&&cb()})}
+function call(p,cb){var u=fbUrl();if(!u){alert("पहले F/B Google Script का लिंक डालिए");cb(null);return}p.tok=TOK;var q=[];for(var k in p)q.push(k+"="+encodeURIComponent(p[k]));
+ fetch(u+(u.indexOf("?")<0?"?":"&")+q.join("&")+"&t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(cb).catch(function(){cb(null)})}
+function reload(){loadState(function(){if(fbMode)drawFb()})}
+/* list */
+function rowOf(k){for(var i=0;i<fbItems.length;i++)if(fbItems[i].k===k)return fbItems[i];var e=fbS[k];return e?{Item:e.n||"",SKU:"",Rate:e.r,MRate:e.mr,th:"",k:k}:null}
+function statusHtml(k,e){if(!e)return"";var left=e.left>0?Math.ceil(e.left/60000):0;
+ if(liveE(e))return'<div class="fbs live"><span>\uD83D\uDD25 F/B चालू: <b>₹'+esc(e.r)+'</b>'+(e.mr?' <s style="opacity:.7">₹'+esc(e.mr)+'</s>':'')+'<br>⏱ <b data-fbt="'+esc(k)+'">'+fT(e.end-nowS())+'</b>'+(e.pcs>0?' · \uD83D\uDED2 '+e.sold+'/'+e.pcs+' बिके':'')+'</span><button class="tgl on" data-fbsw="'+esc(k)+'" aria-label="OFF करें"></button></div>';
+ var why=e.why==="pcs"?"✔ सारे piece बिक गए – F/B बंद":e.why==="time"?"⌛ समय पूरा – F/B बंद":(left>0?"⏸ F/B बंद (बचा समय "+mT(left)+")":"F/B बंद");
+ return'<div class="fbs off"><span>'+why+(e.pcs>0?' · '+e.sold+'/'+e.pcs+' बिके':'')+'</span>'+(left>0&&(!(e.pcs>0)||e.sold<e.pcs)?'<button class="tgl" data-fbsw="'+esc(k)+'" aria-label="ON करें"></button>':'')+'</div>'}
+function rowHtml(o,e){var k=o.k,im=o.th?'<img alt="" loading="lazy" decoding="async" src="'+esc(o.th)+'">':'\uD83D\uDCE6',M=num(o.MRate),R=num(o.Rate);
+ return'<div class="oc"><div class="sec"><div class="it"><div class="th">'+im+'</div><div style="flex:1;min-width:0"><div class="in">'+esc(o.Item)+'</div>'+(o.SKU!==""&&o.SKU!=null?'<div class="ch"><span class="cp">SKU: '+esc(o.SKU)+'</span></div>':'')
+ +'<div class="fbp"><div class="pr" style="margin:0">'+(M!==null?'<span class="pm">'+inr(M)+'</span>':'')+(R!==null?'<span class="pg">'+inr(R)+'</span>':'')+'</div><button class="fbb'+(liveE(e)?' on':'')+'" data-fb="'+esc(k)+'">\uD83D\uDD25 F/B</button></div></div></div>'+statusHtml(k,e)+'</div></div>'}
+function drawFb(){var q=(el("q").value||"").trim().toLowerCase(),h="",rows=[],seen={};
+ if(!fbUrl())h+='<div class="fbn">⚠ F/B का Google Script लिंक अभी नहीं जुड़ा है।<br>(KING_FB.gs को Deploy करके उसका /exec लिंक नीचे बटन से डालिए, या दोनों HTML फ़ाइल में FB_URL_DEFAULT में लिख दीजिए)<br><button type="button" data-fbset="1">🔗 F/B लिंक डालें</button></div>';
+ else if(fbErr)h+='<div class="fbn">'+esc(fbErr)+'<br><button type="button" data-fbset="1">🔗 F/B लिंक बदलें</button></div>';
+ fbItems.forEach(function(o){seen[o.k]=1;if(q&&(o.Item+" "+o.SKU).toLowerCase().indexOf(q)<0)return;rows.push({o:o,e:fbS[o.k]})});
+ for(var k in fbS)if(!seen[k]){var o2=rowOf(k);if(o2&&(!q||String(o2.Item).toLowerCase().indexOf(q)>=0))rows.push({o:o2,e:fbS[k]})}
+ rows.sort(function(a,b){var sa=liveE(a.e)?2:(a.e?1:0),sb=liveE(b.e)?2:(b.e?1:0);return sb-sa});
+ h+='<div class="cuht">\uD83D\uDD25 F/B – किसी भी आइटम के ₹ के बगल में F/B दबाइए (कुल '+rows.length+' आइटम – जिसमें F/B लगा है वो सबसे ऊपर)</div>';
+ rows.slice(0,fbShow).forEach(function(r){h+=rowHtml(r.o,r.e)});
+ if(rows.length>fbShow)h+='<button class="fbmore" data-fbmore="1">और दिखाएँ ('+(rows.length-fbShow)+' बाकी)</button>';
+ if(!rows.length)h+='<div class="empty">'+(fbItems.length?'कोई आइटम नहीं मिला':'⏳ आइटम की लिस्ट आ रही है…')+'</div>';
+ el("list").innerHTML=h}
+/* dialog */
+function openFb(k){var o=rowOf(k);if(!o)return;var e=fbS[k],lv=liveE(e),rem=lv?Math.max(1,Math.ceil((e.end-nowS())/60000)):60,
+ M0=lv&&e.mr?e.mr:(num(o.MRate)!==null?num(o.MRate):num(o.Rate)),R0=lv?e.r:num(o.Rate),P0=e&&e.pcs>0?e.pcs:10;
+ openSheet('<h3>\uD83D\uDD25 F/B – '+esc(o.Item)+'</h3><p>अभी का रेट: <b>'+(num(o.Rate)!==null?inr(o.Rate):"—")+'</b>'+(num(o.MRate)!==null?' (कटा हुआ '+inr(o.MRate)+')':'')+'</p>'
+ +'<div class="fbrow2"><div><label class="fbl">कटा हुआ ₹ (Market)</label><input id="fbm" type="tel" inputmode="decimal" value="'+esc(M0==null?"":M0)+'"></div><div><label class="fbl">F/B ₹ (ग्राहक को)</label><input id="fbr" type="tel" inputmode="decimal" value="'+esc(R0==null?"":R0)+'"></div></div>'
+ +'<label class="fbl">⏱ F/B समय (मिनट)</label><input id="fbt" type="tel" inputmode="numeric" value="'+rem+'">'
+ +'<div class="fbch"><button type="button" data-fba="10">+10</button><button type="button" data-fba="30">+30</button><button type="button" data-fba="60">+60</button><button type="button" data-fba="120">+120</button></div>'
+ +(lv?'<div class="fbtm">⏳ अभी बचा: <b data-fbt="'+esc(k)+'">'+fT(e.end-nowS())+'</b></div>':'')
+ +'<div class="fbsw"><span>F/B '+(lv?'चालू है':'बंद है')+'</span><button type="button" class="tgl'+(lv?' on':'')+'" id="fbtg" aria-label="ON / OFF"></button></div>'
+ +'<label class="fbl">\uD83D\uDED2 कुल piece (खाली = बिना सीमा)</label><input id="fbp" type="tel" inputmode="numeric" value="'+esc(P0)+'">'
+ +(e&&e.pcs>0?'<div class="fbtm" style="font-size:13px">अब तक '+e.sold+' बिके · '+Math.max(0,e.pcs-e.sold)+' बचे (पूरे बिकते ही F/B अपने-आप बंद)</div>':'')
+ +'<div class="fbpv" id="fbpv"></div><div id="msg"></div>'
+ +'<div class="r"><button class="no" id="fbx">बंद</button><button class="ok" id="fbs">\uD83D\uDD25 '+(lv?'Save (बदलें)':'F/B चालू करें')+'</button></div>');
+ function pv(){var t=Math.round(num(el("fbt").value)||0),p=Math.round(num(el("fbp").value)||0);el("fbpv").textContent="ग्राहक को दिखेगा: \uD83D\uDD25 F/B ऑफर – ये आइटम सिर्फ़ "+mT(lv?(e.tot||t):t)+" के लिए है"+(p>0?" · कुल "+p+" piece":"")+" · रेट ₹"+(num(el("fbr").value)||0)}
+ pv();["fbm","fbr","fbt","fbp"].forEach(function(i){el(i).addEventListener("input",pv)});
+ Array.prototype.forEach.call(document.querySelectorAll("#shb [data-fba]"),function(b){b.onclick=function(){el("fbt").value=(Math.round(num(el("fbt").value)||0)+Number(b.getAttribute("data-fba")));pv()}});
+ el("fbx").onclick=closeSheet;
+ function save(){var m=num(el("fbm").value),r=num(el("fbr").value),t=Math.round(num(el("fbt").value)||0),p=Math.round(num(el("fbp").value)||0),ms=el("msg");
+  if(r===null||r<=0){ms.textContent="⚠ F/B का ₹ रेट डालिए";return}if(m!==null&&m<0){ms.textContent="⚠ कटा हुआ ₹ गलत है";return}if(t<1){ms.textContent="⚠ समय (मिनट) डालिए";return}
+  ms.style.color="#555";ms.textContent="⏳ सेव हो रहा है…";
+  call({action:"set",key:k,name:o.Item,mr:m===null?0:m,r:r,mins:t,pcs:p},function(j){if(j&&j.ok){closeSheet();reload()}else{ms.style.color="#c0160c";ms.textContent=j?"⚠ सेव नहीं हुआ ("+(j.err||"")+")":"⚠ Script तक नहीं पहुँचे – लिंक / नेट जाँचिए"}})}
+ el("fbs").onclick=save;
+ el("fbtg").onclick=function(){var ms=el("msg");
+  if(lv){ms.textContent="⏳ बंद हो रहा है…";call({action:"off",key:k},function(j){if(j&&j.ok){closeSheet();reload()}else ms.textContent="⚠ बंद नहीं हुआ"});return}
+  if(e&&e.left>0&&(!(e.pcs>0)||e.sold<e.pcs)){ms.textContent="⏳ चालू हो रहा है…";call({action:"on",key:k},function(j){if(j&&j.ok){closeSheet();reload()}else ms.textContent="⚠ चालू नहीं हुआ"});return}
+  save()}}
+function quickSw(k){var e=fbS[k];if(!e)return;
+ if(liveE(e)){call({action:"off",key:k},function(){reload()});return}
+ if(e.left>0&&(!(e.pcs>0)||e.sold<e.pcs)){call({action:"on",key:k},function(j){if(j&&j.ok)reload();else openFb(k)});return}
+ openFb(k)}
+/* list ke click */
+el("list").addEventListener("click",function(ev){if(!fbMode)return;var t=ev.target;if(!t.closest)return;
+ var b=t.closest("[data-fb]");if(b){openFb(b.getAttribute("data-fb"));return}
+ var s=t.closest("[data-fbsw]");if(s){quickSw(s.getAttribute("data-fbsw"));return}
+ if(t.closest("[data-fbmore]")){fbShow+=60;drawFb();return}
+ if(t.closest("[data-fbset]")){var v=prompt("KING_FB Google Script का /exec लिंक डालिए:",fbUrl());if(v!==null){try{localStorage.setItem("kms_fb_url",v.trim())}catch(e){}fbErr="";reload()}}});
+/* mode ka jod */
+var _rF=render;
+render=function(){var on=fbMode,bf=el("bfb");
+ if(on){el("tabs").style.display="none";el("ar").style.display="none";el("sync").style.display="none";el("q").placeholder="आइटम / SKU खोजें";
+  ["bo2","bc","bcu"].forEach(function(i){el(i).className=""});bf.className="on";drawFb();return}
+ el("sync").style.display="";el("q").placeholder="नाम / मोबाइल / आइटम / ऑर्डर नंबर खोजें";bf.className="";_rF.apply(this,arguments)};
+el("bfb").onclick=function(){if(!fbMode){var pw=prompt("F/B खोलने के लिए पासवर्ड डालिए:");if(pw===null)return;if(String(pw).trim()!=="8112334607"){alert("❌ पासवर्ड गलत है");return}}
+ try{custMode=false;custSel="";cmode=false}catch(e){}fbMode=true;fbShow=1e6;render();window.scrollTo(0,0);
+ loadState(function(){if(fbMode)drawFb()});if(!fbItems.length||Date.now()-fbIT>300000)loadItems(function(){if(fbMode)drawFb()})};
+["bo2","bc","bcu"].forEach(function(i){el(i).addEventListener("click",function(){if(fbMode){fbMode=false;render()}},true)});
+el("q").addEventListener("input",function(){if(fbMode){fbShow=1e6;drawFb()}});
+el("br").addEventListener("click",function(e){if(!fbMode)return;e.stopImmediatePropagation();loadState(function(){drawFb()});loadItems(function(){drawFb()})},true);
+var _kb=window.kbStep;window.kbStep=function(){var o=el("ov"),sd=el("sd");if(fbMode&&!(o&&o.classList.contains("on"))&&!(sd&&sd.classList.contains("on"))){fbMode=false;render();return true}return _kb?_kb.apply(this,arguments):false};
+/* ghadi + apne-aap refresh */
+setInterval(function(){var els=document.querySelectorAll("[data-fbt]");if(!els.length&&!fbMode)return;var n=nowS(),red=false;
+ for(var k in fbS){var e=fbS[k];if(e.on&&e.end<=n){e.on=0;e.left=0;e.why="time";red=true}}
+ for(var i=0;i<els.length;i++){var f=fbS[els[i].getAttribute("data-fbt")];if(f)els[i].textContent=fT(f.end-n)}
+ if(red&&fbMode)drawFb()},1000);
+setInterval(function(){if(fbMode&&!document.hidden&&fbUrl())loadState(function(){drawFb()})},15000);
+})();
 </script>
 </body>
 </html>
