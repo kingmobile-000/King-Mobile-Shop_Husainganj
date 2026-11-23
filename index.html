@@ -1000,5 +1000,69 @@ setInterval(function(){var els=document.querySelectorAll("[data-fbt]");if(!els.l
 setInterval(function(){if(fbMode&&!document.hidden&&fbUrl())loadState(function(){drawFb()})},15000);
 })();
 </script>
+<script id="rcadm">
+/* ===== 📱 मोबाइल रिचार्ज रिक्वेस्ट (RN नंबर) – सिर्फ़ 3 स्टेटस: Recharge Request / कॉल द वेट / Recharge Done ===== */
+(function(){
+function isRc(o){return o&&String(o.sku)==="RECHARGE"}
+function rinfo(o){var p=String(o.item||"").split(" – ");return{co:p.length>2?p[p.length-2]:"",m:p.length>1?p[p.length-1]:""}}
+var LB=["Recharge Request में पड़ा है","कॉल द वेट","Recharge Done"];
+function rix(s){s=ns(s);if(s==="Done")return 2;if(s==="Cancelled"||s==="DelCancelled")return -1;if(s==="Confirmed"||s==="Shipped"||s==="OutForDelivery")return 1;return 0}
+function rTrk(o){var s=ns(o.status),i=rix(s),h="";
+if(i<0)h+='<div class="nt r">❌ रिचार्ज रद्द – '+(o.cancelby==="Customer"?'ग्राहक ने खुद रद्द किया':o.cancelby==="Boy"?'🛵 डिलीवरी बॉय ने रद्द किया'+((/रद्द कारण[^:]*:\s*([^|]*)/.exec(String(o.note||""))||[])[1]?' – कारण: '+esc(/रद्द कारण[^:]*:\s*([^|]*)/.exec(String(o.note||""))[1].trim()):''):'दुकान की तरफ़ से रद्द')+'</div>';
+else{h='<div class="tk">';var KO=["New","Confirmed","Done"];LB.forEach(function(t,n){h+='<div class="t'+(n<=i?" on":"")+'">'+t+(n<=i?hdt(o,KO[n],n,n===i):"")+'</div>'});h+='</div>'}
+h+=boyNote(o,s,tel10(o.dboy));
+if(s==="Done")h+='<div class="nt g">✅ Recharge Done</div>';
+return h}
+function rCard(o){var s=ns(o.status),i=rix(s),I=rinfo(o),A=num(o.rate)||0,P=num(o.total)||0,cut=Math.round((A-P)*100)/100,m=tel10(o.mobile),pn=pinOf(o);
+var h='<div class="oc ocg"><div class="oh"><div><div class="oid">📱 '+(o.no?esc(o.no):'#'+esc(o.id))+(pn?'<span class="pc">📍 PIN '+esc(pn)+'</span>':'')+'</div><div class="otm">'+esc(fmt(o.time))+'</div></div><span class="st '+(i===2?"d":i===1?"c":i<0?"x":"n")+'">'+(i<0?"Recharge Cancelled":esc(LB[i]))+'</span></div>';
+h+='<div class="otk">'+rTrk(o)+'</div>';
+h+='<div class="sec si"><div class="sl">📱 रिचार्ज की पूरी जानकारी</div><div class="kv"><span>कंपनी</span><span style="font-weight:900">'+esc(I.co)+'</span></div><div class="kv"><span>रिचार्ज नंबर</span><span style="font-weight:900;font-size:17px">'+esc(I.m)+'</span></div><div class="kv"><span>रिचार्ज अमाउंट</span><span style="font-weight:900">'+inr(A)+'</span></div><div class="kv"><span>3.5% कटौती</span><span>− '+inr(cut)+'</span></div><div class="tot"><span>ग्राहक से लेना है</span><span>'+inr(P)+'</span></div></div>';
+h+='<div class="sec sc"><div class="sl">👤 ग्राहक की पूरी जानकारी</div><div class="kv"><span>नाम</span><span>'+esc(o.name)+'</span></div><div class="kv"><span>मोबाइल</span><span><a class="tl" href="tel:'+esc(m)+'">📞 '+esc(m)+'</a></span></div><div class="kv"><span>WhatsApp</span><span><a class="tl" target="_blank" href="'+kmWaUrl(m)+'">💬 '+esc(m)+'</a></span></div>';
+if(pn)h+='<div class="kv"><span>पिन कोड</span><span><span class="pcb">📍 '+esc(pn)+'</span></span></div>';
+h+=kmAddr(o);
+h+='<div class="kv kvo"><span>RN नंबर</span><span style="color:#e63c1f;font-size:17px;letter-spacing:.5px">'+(o.no?esc(o.no):'#'+esc(o.id))+'</span></div></div>';
+h+='<div class="rail">';if(!isFinal(o))h+=rAct(o)+'</div>';h+='</div></div>';return h}
+function rAct(o){var s=ns(o.status),id=esc(o.id),h='<div class="ab">';
+function B(c,st,t){return '<button class="'+c+'" data-s="'+st+'" data-id="'+id+'">'+t+'</button>'}
+if(s==="New")h+=B("b1","Confirmed","📞 कॉल द वेट")+B("b3","Cancelled","✖ Cancel Recharge");
+else h+=B("b2","Done","✅ Recharge Done")+B("b3","Cancelled","✖ Cancel Recharge");
+return h}
+function rSet(o,id,s){var ask=s==="Done"?"✅ Recharge Done करें? (":s==="Confirmed"?"📞 कॉल द वेट में डालें? (":"✖ यह रिचार्ज रद्द करें? (";
+function go(){var f={};if(s==="Cancelled"){o.cancelby="Shop";f.cancelby="Shop"}else{o.cancelby="";f.cancelby=""}
+o.status=s;hmark(o,s);f.hist=JSON.stringify(hget(o));o.upd=new Date().toISOString();f.upd=o.upd;o._dirty=Date.now();save();post({action:"status",id:id,status:s,fields:f});logO(o,s);tab=s;render()}
+if(s==="Cancelled")askPw(ask+(o.no||"")+") – पासवर्ड चाहिए",go);else askYes(ask+(o.no||"")+")",go)}
+var _card0=card;card=function(o){return isRc(o)?rCard(o):_card0(o)};
+var _act0=actions;actions=function(o){return isRc(o)?rAct(o):_act0(o)};
+var _ss0=setStatus;setStatus=function(id,s,pick){var o=find(id);if(o&&isRc(o)){rSet(o,id,s);return}return _ss0.apply(this,arguments)};
+var _lo0=logO;logO=function(o,s){if(!isRc(o))return _lo0(o,s);if(s!=="Done"&&s!=="Cancelled")return;
+cpost({action:"log",status:s==="Done"?"Recharge Done":"Recharge Cancelled",order:{id:o.id,no:o.no,time:o.time,item:o.item,sku:o.sku,qty:o.qty,rate:o.rate,total:o.total,offer:0,name:o.name,mobile:o.mobile,address:kmFullAddr(o),payment:o.payment,dboy:o.dboy,billno:""}})};
+try{render()}catch(e){}
+})();
+
+/* ===== 📍 पिन कोड → डिलीवरी बॉय (ऑर्डर + रिचार्ज दोनों): अपने-आप जुड़ना, और न होने पर साफ़ संदेश ===== */
+(function(){
+function liveBoy(m){m=tel10(m);if(m.length!==10)return false;var A=activeBoys();for(var i=0;i<A.length;i++)if(tel10(A[i].mobile)===m)return true;return false}
+var _bn=boyNote;
+boyNote=function(o,s,dm){
+ if(o.delivery!=="घर")return "";
+ if(s==="Done"||s==="Cancelled"||s==="DelCancelled")return _bn(o,s,dm);
+ dm=tel10(dm);var pn=pinOf(o),L=boysForOrder(o);
+ if(dm.length===10){
+  if(o._asg&&boys.length&&!liveBoy(dm)&&s!=="OutForDelivery")return '<div class="nt r">⚠ पहले जुड़ा डिलीवरी बॉय ('+esc(dm)+') अब लिस्ट में नहीं है'+(L.length?' – नीचे से नया चुनिए':(pn?' – पिन '+esc(pn)+' का अभी कोई डिलीवरी बॉय नहीं है, 🛵 बटन से जोड़िए':''))+'</div>';
+  return _bn(o,s,dm)}
+ if(!L.length){
+  return '<div class="nt r">⚠ '+(pn?'इस पिन कोड <b>'+esc(pn)+'</b> का अभी तक कोई डिलीवरी बॉय नहीं बना है':'इस पते में पिन कोड नहीं मिला')+'.<br>👉 इसमें अभी डिलीवरी बॉय का नंबर जोड़ना बाकी है – ऊपर 🛵 बटन से '+(pn?'इस पिन ('+esc(pn)+') का ':'')+'डिलीवरी बॉय जोड़िए; जोड़ते ही इस पिन के सारे ऑर्डर/रिचार्ज उसी की ID में चले जाएँगे।</div>'}
+ return _bn(o,s,dm)};
+/* जिस पिन पर डिलीवरी बॉय जुड़ गया, उसके सारे चालू ऑर्डर + रिचार्ज उसी की ID में; पुराना (हटाया गया) बॉय होने पर नए पर */
+oAssign=function(){var ch=false;orders.forEach(function(o){var s=ns(o.status);if(s==="Done"||s==="Cancelled"||s==="DelCancelled")return;if(o.delivery!=="घर")return;
+ var d=tel10(o.dboy);
+ if(d.length===10){if(!o._asg||s==="OutForDelivery")return;if(!boys.length||liveBoy(d))return}
+ var sg=boyForOrder(o);if(!sg||tel10(sg.mobile)===d)return;
+ o.dboy=sg.mobile;o._asg=1;ch=true;post({action:"status",id:o.id,fields:{dboy:sg.mobile}})});if(ch)save()};
+try{if(boys&&boys.length)oAssign()}catch(e){}
+try{render()}catch(e){}
+})();
+</script>
+
 </body>
 </html>
