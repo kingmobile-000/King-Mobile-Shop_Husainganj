@@ -71,7 +71,7 @@ html:has(#ov.on),body:has(#ov.on){overflow:hidden}
 #msg{font-size:13px;font-weight:800;color:#c0160c}
 .tot.of{background:#e8f0fe;color:#0b4fa8;font-size:15px;margin-top:6px}.tot.of.rf span:last-child{text-decoration:line-through;color:#888}
 .cbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:#fff;border-top:1px solid #d9dce1;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.12)}
-.cbar{display:flex;gap:8px}.cbar button{flex:1;padding:13px 4px;border:0;border-radius:12px;font-size:16px;font-weight:900;background:#eef0f3;color:#333}.cbar button.on{background:#e63c1f;color:#fff}
+.cbar{display:flex;gap:6px}.cbar button{flex:1;min-width:0;padding:13px 2px;border:0;border-radius:12px;font-size:14px;font-weight:900;white-space:nowrap;background:#eef0f3;color:#333}.cbar button.on{background:#e63c1f;color:#fff}
 #list{padding-bottom:80px}.cimg{width:92px;height:92px;object-fit:cover;border-radius:10px;margin-top:8px}
 .c1{background:#4f46e5;color:#fff}.c2{background:#16a34a;color:#fff}.c3{background:#fde4e1;color:#b42410}
 .dl select{width:100%;padding:12px;font-size:15px;font-weight:800;border:2px solid #0f766e;border-radius:10px;background:#fff;color:#111}
@@ -1062,6 +1062,81 @@ oAssign=function(){var ch=false;orders.forEach(function(o){var s=ns(o.status);if
 try{if(boys&&boys.length)oAssign()}catch(e){}
 try{render()}catch(e){}
 })();
+
+/* ===== LOAN (दुकान का पेज): किसके पास कितना लोन बाकी, कौन लेट, हर ID अलग ===== */
+var lnAD=null,lnAF="all",lnAQ="",lnAOpen={},lnABusy=false;
+var LNA_MON=["जन","फ़र","मार्च","अप्र","मई","जून","जुला","अग","सित","अक्टू","नव","दिस"];
+function lnaDt(s){if(!s)return"";var p=String(s).slice(0,10).split("-");return p.length<3?s:(+p[2])+" "+LNA_MON[+p[1]-1]+" "+String(p[0]).slice(2)}
+function lnaRs(x){return "₹"+(Math.round(Number(x||0)*100)/100).toLocaleString("en-IN")}
+function lnaCol(sc){return sc>=701?"#15803d":sc>=500?"#d97706":"#dc2626"}
+function lnaLoad(cb){
+  var u=getUrl();if(!/^https?:/.test(u)){cb&&cb("setup");return}
+  fetch(u+(u.indexOf("?")<0?"?":"&")+"action=loanadmin&pin="+encodeURIComponent(getPin())+"&t="+Date.now()).then(function(r){return r.json()}).then(function(j){
+    if(j&&j.ok){lnAD=j;cb&&cb("ok")}else cb&&cb((j&&j.err)||(j&&j.error)||"err");
+  }).catch(function(){cb&&cb("net")});
+}
+function lnaState(c){var q=c.sum||{};if(c.overdue)return"late";if((q.left||0)>0)return"due";return(q.loans||0)>0?"done":"none"}
+function lnaOpen(){
+  openSheet('<h3>💳 Loan</h3><p>⏳ लोन का हिसाब आ रहा है…</p><div class="r"><button class="no" id="lncl">बंद</button></div>');
+  document.getElementById("lncl").onclick=closeSheet;
+  lnaLoad(function(r){
+    if(r==="ok"){lnaDraw();return}
+    var m=r==="pin"?"⚠ PIN गलत है – KING_ALL_IN_ONE.gs का ADMIN_PIN और इस फ़ाइल का DEFAULT_PIN एक जैसा रखिए":r==="net"?"⚠ इंटरनेट / लिंक जाँचिए":r==="setup"?"⚠ पहले ⚙ में /exec लिंक डालिए":"⚠ लोन का नया KING_ALL_IN_ONE.gs Deploy (New version) कीजिए";
+    openSheet('<h3>💳 Loan</h3><p>'+esc(m)+'</p><div class="r"><button class="no" id="lncl">बंद</button><button class="ok" id="lnrt">फिर कोशिश</button></div>');
+    document.getElementById("lncl").onclick=closeSheet;document.getElementById("lnrt").onclick=lnaOpen;
+  });
+}
+function lnaDraw(){
+  var L=(lnAD&&lnAD.customers)||[],q=lnAQ.toLowerCase().trim(),tot=0,lateAmt=0,lateC=0,dueC=0,doneC=0;
+  L.forEach(function(c){var st=lnaState(c);tot+=(c.sum&&c.sum.left)||0;if(st==="late"){lateC++;(c.loans||[]).forEach(function(l){l.kists.forEach(function(k){if(!k.paid&&k.lateDays>0)lateAmt+=k.emi})})}if(st==="due")dueC++;if(st==="done")doneC++});
+  var rows=L.filter(function(c){
+    var st=lnaState(c);if(lnAF==="late"&&st!=="late")return false;if(lnAF==="due"&&st!=="due"&&st!=="late")return false;if(lnAF==="done"&&st!=="done")return false;
+    return !q||String(c.name||"").toLowerCase().indexOf(q)>=0||String(c.mobile).indexOf(q)>=0}).sort(function(a,b){var o={late:0,due:1,done:2,none:3};return o[lnaState(a)]-o[lnaState(b)]||((b.sum&&b.sum.left)||0)-((a.sum&&a.sum.left)||0)});
+  var h='<h3>💳 Loan – '+L.length+' ग्राहक</h3>'
+   +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div style="background:#fff3e0;border-radius:10px;padding:8px;text-align:center;font-size:12px">कुल लेना बाकी<b style="display:block;font-size:17px">'+lnaRs(tot)+'</b></div><div style="background:#fdecec;border-radius:10px;padding:8px;text-align:center;font-size:12px">लेट किस्त की रकम ('+lateC+' ग्राहक)<b style="display:block;font-size:17px;color:#dc2626">'+lnaRs(lateAmt)+'</b></div></div>'
+   +'<div style="display:flex;gap:6px;overflow-x:auto">'+[["all","सभी ("+L.length+")"],["late","⚠ लेट ("+lateC+")"],["due","बाकी ("+(dueC+lateC)+")"],["done","✔ पूरा ("+doneC+")"]].map(function(f){return '<button type="button" data-lnf="'+f[0]+'" style="flex:none;padding:8px 12px;border-radius:999px;border:2px solid '+(lnAF===f[0]?"#e63c1f":"#d5d8dd")+';background:'+(lnAF===f[0]?"#e63c1f":"#fff")+';color:'+(lnAF===f[0]?"#fff":"#000")+';font-weight:800;font-size:13px">'+f[1]+'</button>'}).join("")+'</div>'
+   +'<input type="text" id="lnq" placeholder="नाम / मोबाइल खोजें" value="'+esc(lnAQ)+'">';
+  if(!rows.length)h+='<p style="text-align:center;padding:16px">'+(L.length?"कोई नहीं मिला":"अभी किसी ने लोन नहीं लिया")+'</p>';
+  rows.forEach(function(c){
+    var st=lnaState(c),q2=c.sum||{},open=!!lnAOpen[c.mobile];
+    var tag=st==="late"?'<span style="background:#fdecec;color:#dc2626;border-radius:8px;padding:2px 8px;font-weight:800;font-size:12px">✖ '+q2.lateKists+' किस्त लेट</span>':st==="done"?'<span style="background:#e9f9ee;color:#15803d;border-radius:8px;padding:2px 8px;font-weight:800;font-size:12px">✔ लोन पूरा</span>':st==="due"?'<span style="background:#e3effd;color:#0b4fa8;border-radius:8px;padding:2px 8px;font-weight:800;font-size:12px">✔ किस्त ठीक चल रही</span>':'<span style="color:#888;font-size:12px">लोन नहीं लिया</span>';
+    h+='<div style="border:1.5px solid '+(st==="late"?"#fca5a5":"#e5e7eb")+';border-radius:14px;padding:10px;background:#fff"><div data-lnt="'+esc(c.mobile)+'" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><b>'+esc(c.name||"–")+'</b><div style="font-size:12px;color:#555"><a href="tel:'+esc(c.mobile)+'">'+esc(c.mobile)+'</a></div>'+tag+'</div><div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+lnaCol(c.score)+'">'+c.score+'</div><div style="font-size:11px;color:#666">सिविल</div></div></div>'
+     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px;font-size:11px;text-align:center"><div style="background:#f5f7fb;border-radius:8px;padding:5px">कुल लिया<b style="display:block;font-size:13px">'+lnaRs(q2.loaned)+'</b></div><div style="background:#e9f9ee;border-radius:8px;padding:5px">जमा<b style="display:block;font-size:13px;color:#15803d">'+lnaRs(q2.paid)+'</b></div><div style="background:#fdecec;border-radius:8px;padding:5px">बाकी<b style="display:block;font-size:13px;color:#dc2626">'+lnaRs(q2.left)+'</b></div></div>';
+    if(open){
+      h+='<div style="font-size:12px;margin:8px 0;color:#444">लिमिट '+lnaRs(c.limit)+' · उपलब्ध '+lnaRs(c.available)+' · लेट '+(q2.lateKists||0)+' किस्त / '+(q2.lateDays||0)+' दिन'+(c.waitUntil?' · नया लोन '+lnaDt(c.waitUntil)+' तक बंद':'')+(c.kyc?'<br>आधार '+esc(c.kyc.aadhaar)+' · पैन '+esc(c.kyc.pan):'<br>KYC अभी नहीं')+'</div>';
+      (c.loans||[]).forEach(function(l,li){
+        h+='<div style="margin-top:8px"><b>'+esc(l.item||"लोन")+'</b> '+lnaRs(l.principal)+' · '+l.months+' महीने · किस्त '+lnaRs(l.emi)+' · '+lnaDt(l.start)+(l.orn?' · '+esc(l.orn):'')+' · <span style="color:'+(l.status==="Closed"?"#15803d":"#0b4fa8")+'">'+(l.status==="Closed"?"पूरा":"चालू")+'</span></div>';
+        var fu=null;l.kists.forEach(function(k){if(!k.paid&&fu===null)fu=k.no});
+        l.kists.forEach(function(k){
+          var ic=k.kind==="paid"?'<span style="color:#16a34a;font-weight:900">✔</span>':k.kind==="paidlate"?'<span style="color:#d97706;font-weight:900">✔</span>':k.kind==="late"?'<span style="color:#dc2626;font-weight:900">✖</span>':k.kind==="today"?'<span style="color:#0b5cff;font-weight:900">●</span>':'<span style="color:#aaa">○</span>';
+          var tx=k.kind==="paid"?"समय पर जमा "+lnaDt(k.paidDate):k.kind==="paidlate"?"जमा "+lnaDt(k.paidDate)+" – "+k.lateDays+" दिन लेट (−"+k.pen+")":k.kind==="late"?"बाकी – "+k.lateDays+" दिन लेट (−"+k.pen+")":k.kind==="today"?"आज आख़िरी तारीख":"आगे";
+          h+='<div style="display:flex;gap:6px;align-items:center;border-bottom:1px solid #eee;padding:5px 0;font-size:12px"><span style="width:16px">'+ic+'</span><span style="flex:1"><b>#'+k.no+'</b> '+lnaDt(k.due)+' · '+lnaRs(k.emi)+'<br><span style="color:#666">'+tx+'</span></span>'
+           +((k.paid||k.no!==fu)?'':'<button type="button" data-lnm="'+esc(k.key)+'" data-lnn="'+esc(c.name||c.mobile)+'" data-lna="'+k.emi+'" style="padding:7px 9px;border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;font-size:12px">✅ मिल गई</button>')+'</div>';
+        });
+      });
+    }
+    h+='<div data-lnt="'+esc(c.mobile)+'" style="text-align:center;font-size:12px;color:#0b5cff;font-weight:800;margin-top:6px">'+(open?"▲ बंद करें":"▼ हर किस्त देखें")+'</div></div>';
+  });
+  h+='<div class="r"><button class="no" id="lncl">बंद</button><button class="ok" id="lnrf">🔄 ताज़ा करें</button></div>';
+  var sc=document.getElementById("shb"),top=sc?sc.scrollTop:0;
+  openSheet(h);document.getElementById("shb").scrollTop=top;
+  document.getElementById("lncl").onclick=closeSheet;document.getElementById("lnrf").onclick=lnaOpen;
+  var qi=document.getElementById("lnq");if(qi&&lnAQ){qi.focus();qi.setSelectionRange(lnAQ.length,lnAQ.length)}
+}
+document.getElementById("shb").addEventListener("input",function(e){if(e.target&&e.target.id==="lnq"){lnAQ=e.target.value;lnaDraw()}});
+document.getElementById("shb").addEventListener("click",function(e){
+  var f=e.target.closest("[data-lnf]");if(f){lnAF=f.getAttribute("data-lnf");lnaDraw();return}
+  var t=e.target.closest("[data-lnt]");if(t&&!e.target.closest("a")){var m=t.getAttribute("data-lnt");lnAOpen[m]=!lnAOpen[m];lnaDraw();return}
+  var b=e.target.closest("[data-lnm]");if(b){
+    var key=b.getAttribute("data-lnm"),nm=b.getAttribute("data-lnn"),am=b.getAttribute("data-lna");
+    askYes("✅ "+nm+" की किस्त "+lnaRs(am)+" दुकान पर मिल गई? (जमा मान ली जाएगी)",function(){
+      try{fetch(getUrl(),{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"loanmark",kist:key,pin:getPin()})}).catch(function(){})}catch(x){}
+      openSheet('<h3>⏳ जमा हो रही है…</h3>');setTimeout(function(){lnaLoad(function(){lnaDraw()})},2500)},"हाँ, मिल गई");
+  }
+});
+var _lnb=document.createElement("button");_lnb.id="bln";_lnb.type="button";_lnb.textContent="💳 Loan";_lnb.onclick=lnaOpen;
+document.querySelector(".cbar").appendChild(_lnb);
+
 </script>
 
 </body>
