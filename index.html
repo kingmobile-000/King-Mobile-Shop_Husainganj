@@ -1067,6 +1067,9 @@ try{render()}catch(e){}
 var lnAD=null,lnAF="all",lnAQ="",lnAOpen={},lnABusy=false;
 var LNA_MON=["जन","फ़र","मार्च","अप्र","मई","जून","जुला","अग","सित","अक्टू","नव","दिस"];
 function lnaDt(s){if(!s)return"";var p=String(s).slice(0,10).split("-");return p.length<3?s:(+p[2])+" "+LNA_MON[+p[1]-1]+" "+String(p[0]).slice(2)}
+function lnaDobISO(v){v=String(v||"").trim();var m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?m[3]+"-"+m[2]+"-"+m[1]:v}
+function lnaDobDisplay(v){v=String(v||"");var m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+"/"+m[2]+"/"+m[1]:v}
+function lnaDobMask(el){var d=String(el.value||"").replace(/\D/g,"").slice(0,8);el.value=d.length>4?d.slice(0,2)+"/"+d.slice(2,4)+"/"+d.slice(4):d.length>2?d.slice(0,2)+"/"+d.slice(2):d}
 function lnaRs(x){return "₹"+(Math.round(Number(x||0)*100)/100).toLocaleString("en-IN")}
 function lnaCol(sc){return sc>=701?"#15803d":sc>=500?"#d97706":"#dc2626"}
 function lnaLoad(cb){
@@ -1148,15 +1151,16 @@ function lnaKyc(m){
   var IN='width:100%;box-sizing:border-box;padding:9px;border:1.5px solid #d5d8dd;border-radius:10px;font-size:15px;margin:2px 0 4px';
   var inp=function(id,lb,v,ty){return '<div style="font-size:12px;color:#555;margin-top:6px">'+lb+'</div><input type="'+(ty||'text')+'" id="'+id+'" value="'+esc(v||'')+'" style="'+IN+'">'};
   openSheet('<h3>✏ ग्राहक की जानकारी</h3><div style="font-size:12px;color:#555">मोबाइल (बदल नहीं सकते)</div><input value="'+esc(m)+'" disabled style="'+IN+'">'
-   +inp('kyn','नाम',p.name||c.name)+inp('kyd','जन्म तारीख (60 साल से कम)',p.dob,'date')
+   +inp('kyn','Name',p.name||c.name)+inp('kyd','Date of Birth (DD/MM/YYYY)',lnaDobDisplay(p.dob),'text')
    +'<div style="font-size:12px;color:#555;margin-top:6px">पूरा पता</div><textarea id="kya" rows="3" style="'+IN+'">'+esc(p.address||'')+'</textarea>'
    +inp('kyad','आधार नंबर (12 अंक)',p.aadhaar)+inp('kyp','पैन नंबर',p.pan)
    +'<div class="r"><button class="no" id="kyx">वापस</button><button class="ok" id="kys">💾 सेव करो</button></div>');
   document.getElementById("kyx").onclick=function(){lnaDraw()};
+  var dobInput=document.getElementById("kyd");if(dobInput){dobInput.placeholder="00/00/0000";dobInput.maxLength=10;dobInput.inputMode="numeric";dobInput.addEventListener("input",function(){lnaDobMask(this)})}
   document.getElementById("kys").onclick=function(){
     var g=function(i){return document.getElementById(i).value.trim()};
     var b=document.getElementById("kys");b.disabled=true;b.textContent="⏳ सेव हो रहा है…";
-    fetch(getUrl(),{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"loanprofileedit",pin:getPin(),mobile:m,name:g("kyn"),dob:g("kyd"),address:g("kya"),aadhaar:g("kyad").replace(/\D/g,""),pan:g("kyp").toUpperCase()})})
+    fetch(getUrl(),{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"loanprofileedit",pin:getPin(),mobile:m,name:g("kyn"),dob:lnaDobISO(g("kyd")),address:g("kya"),aadhaar:g("kyad").replace(/\D/g,""),pan:g("kyp").toUpperCase()})})
      .then(function(r){return r.json()}).then(function(j){
        if(j&&j.ok){lnaLoad(function(){lnaDraw()})}else{b.disabled=false;b.textContent="💾 सेव करो";alert((j&&j.error)||"सेव नहीं हुआ")}
      }).catch(function(){b.disabled=false;b.textContent="💾 सेव करो";alert("नेट की दिक्कत - दोबारा कोशिश करें")});
@@ -1167,5 +1171,11 @@ document.querySelector(".cbar").appendChild(_lnb);
 
 </script>
 
+<style id="kingmobile-admin-stability">
+html,body{overscroll-behavior-y:contain}#ov{align-items:center!important;padding:8px 10px!important}#ov .sh{max-height:calc(100dvh - 16px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;touch-action:pan-y!important;width:100%!important;max-width:720px!important}
+.cbar button,#list button,input,textarea,select{min-width:0;max-width:100%}.cbar{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))!important}
+@media(max-width:480px){.cbar button{font-size:12px!important;padding:10px 1px!important}}
+@media(min-width:700px){#list{max-width:1200px;margin:0 auto}.cbar{max-width:1200px;left:50%!important;transform:translateX(-50%);width:100%}}
+</style>
 </body>
 </html>
