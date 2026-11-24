@@ -1103,7 +1103,7 @@ function lnaDraw(){
     h+='<div style="border:1.5px solid '+(st==="late"?"#fca5a5":"#e5e7eb")+';border-radius:14px;padding:10px;background:#fff"><div data-lnt="'+esc(c.mobile)+'" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><b>'+esc(c.name||"–")+'</b><div style="font-size:12px;color:#555"><a href="tel:'+esc(c.mobile)+'">'+esc(c.mobile)+'</a></div>'+tag+'</div><div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+lnaCol(c.score)+'">'+c.score+'</div><div style="font-size:11px;color:#666">सिविल</div></div></div>'
      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px;font-size:11px;text-align:center"><div style="background:#f5f7fb;border-radius:8px;padding:5px">कुल लिया<b style="display:block;font-size:13px">'+lnaRs(q2.loaned)+'</b></div><div style="background:#e9f9ee;border-radius:8px;padding:5px">जमा<b style="display:block;font-size:13px;color:#15803d">'+lnaRs(q2.paid)+'</b></div><div style="background:#fdecec;border-radius:8px;padding:5px">बाकी<b style="display:block;font-size:13px;color:#dc2626">'+lnaRs(q2.left)+'</b></div></div>';
     if(open){
-      h+='<div style="font-size:12px;margin:8px 0;color:#444">लिमिट '+lnaRs(c.limit)+' · उपलब्ध '+lnaRs(c.available)+' · लेट '+(q2.lateKists||0)+' किस्त / '+(q2.lateDays||0)+' दिन'+(c.waitUntil?' · नया लोन '+lnaDt(c.waitUntil)+' तक बंद':'')+(c.kyc?'<br>आधार '+esc(c.kyc.aadhaar)+' · पैन '+esc(c.kyc.pan):'<br>KYC अभी नहीं')+'</div>';
+      h+='<div style="font-size:12px;margin:8px 0;color:#444">लिमिट '+lnaRs(c.limit)+' · उपलब्ध '+lnaRs(c.available)+' · लेट '+(q2.lateKists||0)+' किस्त / '+(q2.lateDays||0)+' दिन'+(c.waitUntil?' · नया लोन '+lnaDt(c.waitUntil)+' तक बंद':'')+lnaKycLine(c)+'</div>';
       (c.loans||[]).forEach(function(l,li){
         h+='<div style="margin-top:8px"><b>'+esc(l.item||"लोन")+'</b> '+lnaRs(l.principal)+' · '+l.months+' महीने · किस्त '+lnaRs(l.emi)+' · '+lnaDt(l.start)+(l.orn?' · '+esc(l.orn):'')+' · <span style="color:'+(l.status==="Closed"?"#15803d":"#0b4fa8")+'">'+(l.status==="Closed"?"पूरा":"चालू")+'</span></div>';
         var fu=null;l.kists.forEach(function(k){if(!k.paid&&fu===null)fu=k.no});
@@ -1125,6 +1125,7 @@ function lnaDraw(){
 }
 document.getElementById("shb").addEventListener("input",function(e){if(e.target&&e.target.id==="lnq"){lnAQ=e.target.value;lnaDraw()}});
 document.getElementById("shb").addEventListener("click",function(e){
+  var kb=e.target.closest("[data-lnk]");if(kb){lnaKyc(kb.getAttribute("data-lnk"));return}
   var f=e.target.closest("[data-lnf]");if(f){lnAF=f.getAttribute("data-lnf");lnaDraw();return}
   var t=e.target.closest("[data-lnt]");if(t&&!e.target.closest("a")){var m=t.getAttribute("data-lnt");lnAOpen[m]=!lnAOpen[m];lnaDraw();return}
   var b=e.target.closest("[data-lnm]");if(b){
@@ -1134,6 +1135,33 @@ document.getElementById("shb").addEventListener("click",function(e){
       openSheet('<h3>⏳ जमा हो रही है…</h3>');setTimeout(function(){lnaLoad(function(){lnaDraw()})},2500)},"हाँ, मिल गई");
   }
 });
+function lnaKycLine(c){
+  var p=c.profile,h='';
+  if(p){
+    var ph=[["आधार आगे",p.aphotoUrl],["आधार पीछे",p.aphoto2Url],["पैन फोटो",p.pphotoUrl]].map(function(x){return x[1]?'<a href="'+esc(x[1])+'" target="_blank" rel="noopener">'+x[0]+'</a>':'<span style="color:#aaa">'+x[0]+' ✖</span>'}).join(' · ');
+    h='<br>👤 '+esc(p.name||'–')+' · जन्म '+esc(p.dob||'–')+(c.age?' ('+c.age.years+' साल'+(c.age.blocked?' – 60+ लोन बंद':'')+')':'')
+     +'<br>🪪 आधार '+esc(p.aadhaar||'–')+' · पैन '+esc(p.pan||'–')+'<br>📍 '+esc(p.address||'–')+'<br>'+ph;
+  }else h='<br>KYC अभी नहीं';
+  return h+'<br><button type="button" data-lnk="'+esc(c.mobile)+'" style="margin-top:6px;padding:7px 10px;border:0;border-radius:8px;background:#0b5cff;color:#fff;font-weight:800;font-size:12px">✏ जानकारी बदलें</button>'}
+function lnaKyc(m){
+  var c=((lnAD&&lnAD.customers)||[]).filter(function(x){return x.mobile===m})[0]||{},p=c.profile||{};
+  var IN='width:100%;box-sizing:border-box;padding:9px;border:1.5px solid #d5d8dd;border-radius:10px;font-size:15px;margin:2px 0 4px';
+  var inp=function(id,lb,v,ty){return '<div style="font-size:12px;color:#555;margin-top:6px">'+lb+'</div><input type="'+(ty||'text')+'" id="'+id+'" value="'+esc(v||'')+'" style="'+IN+'">'};
+  openSheet('<h3>✏ ग्राहक की जानकारी</h3><div style="font-size:12px;color:#555">मोबाइल (बदल नहीं सकते)</div><input value="'+esc(m)+'" disabled style="'+IN+'">'
+   +inp('kyn','नाम',p.name||c.name)+inp('kyd','जन्म तारीख (60 साल से कम)',p.dob,'date')
+   +'<div style="font-size:12px;color:#555;margin-top:6px">पूरा पता</div><textarea id="kya" rows="3" style="'+IN+'">'+esc(p.address||'')+'</textarea>'
+   +inp('kyad','आधार नंबर (12 अंक)',p.aadhaar)+inp('kyp','पैन नंबर',p.pan)
+   +'<div class="r"><button class="no" id="kyx">वापस</button><button class="ok" id="kys">💾 सेव करो</button></div>');
+  document.getElementById("kyx").onclick=function(){lnaDraw()};
+  document.getElementById("kys").onclick=function(){
+    var g=function(i){return document.getElementById(i).value.trim()};
+    var b=document.getElementById("kys");b.disabled=true;b.textContent="⏳ सेव हो रहा है…";
+    fetch(getUrl(),{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"loanprofileedit",pin:getPin(),mobile:m,name:g("kyn"),dob:g("kyd"),address:g("kya"),aadhaar:g("kyad").replace(/\D/g,""),pan:g("kyp").toUpperCase()})})
+     .then(function(r){return r.json()}).then(function(j){
+       if(j&&j.ok){lnaLoad(function(){lnaDraw()})}else{b.disabled=false;b.textContent="💾 सेव करो";alert((j&&j.error)||"सेव नहीं हुआ")}
+     }).catch(function(){b.disabled=false;b.textContent="💾 सेव करो";alert("नेट की दिक्कत - दोबारा कोशिश करें")});
+  };
+}
 var _lnb=document.createElement("button");_lnb.id="bln";_lnb.type="button";_lnb.textContent="💳 Loan";_lnb.onclick=lnaOpen;
 document.querySelector(".cbar").appendChild(_lnb);
 
