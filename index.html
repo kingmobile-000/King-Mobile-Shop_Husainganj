@@ -229,7 +229,7 @@ arr.forEach(function(r){if(!r||!r.id)return;r.id=String(r.id);r.mobile=tel10(r.m
 if(!l){orders.push(r);by[r.id]=r;ch=true;return}
 if(l._dirty){if(r.status===l.status||Date.now()-Number(l._dirty)>20000){delete l._dirty;ch=true;if(r.status===l.status){if(mh(l,r))ch=true;return}}else{if(mh(l,r))ch=true;return}}
 var was=l.status;
-["no","status","item","sku","warranty","mrate","rate","qty","total","stock","name","mobile","delivery","address","city","pin","payment","note","time","dboy","cancelby","upd","offer","offerref","billno","shot","sthumb","upiamt","utr"].forEach(function(k){if(r[k]!==undefined&&r[k]!==""&&String(l[k])!==String(r[k])){l[k]=r[k];ch=true}});
+["no","status","item","sku","warranty","mrate","rate","qty","total","stock","name","mobile","delivery","address","city","pin","payment","note","time","dboy","cancelby","upd","offer","boxv","offerref","billno","shot","sthumb","upiamt","utr"].forEach(function(k){if(r[k]!==undefined&&r[k]!==""&&String(l[k])!==String(r[k])){l[k]=r[k];ch=true}});
 if(was!==l.status){hmark(l,l.status,r.upd||"");ch=true}if(mh(l,r))ch=true;if(was!==l.status&&offerRefund(l))ch=true;
 if(!l.thumb&&r.thumb){l.thumb=r.thumb;ch=true}});
 if(ch)save()}
@@ -281,7 +281,7 @@ h+='<div class="sec si"><div class="sl">🛒 आइटम की पूरी �
 h+='<div class="ch">'+(o.sku!==""&&o.sku!=null?'<span class="cp">SKU: '+esc(o.sku)+'</span>':'')+(o.warranty?'<span class="cp w">🛡 '+esc(o.warranty)+'</span>':'')+(o.stock?'<span class="cp">Stock: '+esc(o.stock)+'</span>':'')+'<span class="cp">मात्रा: '+esc(o.qty||1)+'</span></div></div>'+(o.shot?'<div class="kmst" data-shot="'+esc(o.id)+'" data-no="'+esc(o.no||"")+'">'+(o.sthumb?'<img alt="" src="'+esc(o.sthumb)+'">':'<span class="kmse">📷</span>')+'<small>पेमेंट का फोटो</small></div>':'')+'</div>';
 var T=(o.total!==""&&o.total!=null)?num(o.total):(R!==null?R*(num(o.qty)||1):null),OF=num(o.offer)||0,RF=String(o.offerref)==="1";
 h+='<div class="tot"><span>कुल रकम</span><span>'+(T!==null?inr(T):"—")+'</span></div>';
-if(OF>0)h+='<div class="tot of'+(RF?' rf':'')+'"><span>🎁 ऑफर'+(RF?' (वापस हुआ)':' (कटा)')+'</span><span>'+(RF?'':'−')+inr(OF)+'</span></div>'+(RF?'':'<div class="tot"><span>देना है</span><span>'+(T!==null?inr(Math.max(0,T-OF)):"—")+'</span></div>');
+if(OF>0)h+='<div class="tot of'+(RF?' rf':'')+'"><span>🎁 ऑफर'+(RF?' (वापस हुआ)':' (कटा)')+'</span><span>'+(RF?'':'−')+inr(OF)+'</span></div>'+(RF?'':'<div class="tot"><span>देना है</span><span>'+(T!==null?inr(Math.max(0,T-OF)):"—")+'</span></div>')+(o.boxv?'<div class="nt g">🎁 ऑफर बॉक्स वाउचर से बुक हुआ</div>':'');
 h+='</div>';
 h+='<div class="sec sc"><div class="sl">👤 ग्राहक की पूरी जानकारी</div><div class="kv"><span>नाम</span><span>'+esc(o.name)+'</span></div><div class="kv"><span>मोबाइल</span><span><a class="tl" href="tel:'+esc(m)+'">📞 '+esc(m)+'</a></span></div>';
 h+='<div class="kv"><span>WhatsApp</span><span><a class="tl" target="_blank" href="'+kmWaUrl(m)+'">💬 '+esc(m)+'</a></span></div>';
